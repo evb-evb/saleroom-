@@ -356,6 +356,15 @@
     .phone.card-stacked.sheet-open .sheet-body { padding-top: 12px; padding-bottom: 8px; }
     .phone.card-stacked.sheet-open .sheet-cta { padding: 10px 16px 18px; }
     .phone.card-stacked.sheet-open .lot-detail-text { display: none; }
+    /* Split view is a fixed layout — it must not scroll */
+    .phone.card-stacked.sheet-open .sheet-body { overflow: hidden; }
+    /* Chevron, top-right, collapses split view back to the floating bid card */
+    .split-close { display: none; }
+    .phone.card-stacked.sheet-open .split-close {
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; top: 8px; right: 10px; z-index: 12;
+      width: 34px; height: 34px; padding: 0; border: 0; background: none; color: #000; cursor: pointer;
+    }
     .bid-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .current-label { font-size: 14px; color: var(--black-75); }
     .current-amount {
@@ -853,6 +862,9 @@
     <div class="sheet-scrim" id="sheetScrim"></div>
     <div class="lot-sheet" id="lotSheet" aria-hidden="true">
       <button class="sheet-close" id="sheetGrabber" aria-label="Close lot card"></button>
+      <button class="split-close" id="splitClose" aria-label="Close split view — back to the floating card">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
       <div class="sheet-body">
         <div class="sheet-lot">
           <div class="lot-text">
@@ -921,7 +933,6 @@
           <p>20 x 16 in. (50.8 x 40.6 cm)</p>
           <p>Painted in 2017.</p>
         </div>
-        <ol class="lf-bids" id="lfBids" aria-live="polite"></ol>
       </div>
       <div class="sheet-cta">
         <div class="sheet-cta-top">
@@ -1097,7 +1108,7 @@
     let userState = "registered"; // "registered" | "logged-in"
     let feedAlign     = "sourced"; // bid stream defaults to left + source
     let sheetSize     = "full";    // "full" | "half"
-    let cardStyle     = "stacked"; // lot card defaults to split view
+    let cardStyle     = "floating"; // lot card defaults to the floating bid card; tap opens split view
     let outbid        = false;     // your leading bid was just overtaken
     let outbidTimer   = null;
     let lotIndex      = 0;         // index into ALL_LOTS of the current live lot
@@ -1631,6 +1642,10 @@
     const openSplitView = () => { setCardStyle("stacked"); phone.scrollTop = 0; requestAnimationFrame(() => { phone.scrollTop = 0; }); };
     lotRow.addEventListener("click", openSplitView);
     lotRow.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSplitView(); } });
+    // Split view is a fixed layout — pin the phone scroll so a tap's focus-scroll can't move it.
+    phone.addEventListener("scroll", () => {
+      if (phone.classList.contains("card-stacked") && phone.classList.contains("sheet-open")) phone.scrollTop = 0;
+    });
     document.getElementById("sheetGrabber").addEventListener("click", closeSheet);
     document.getElementById("sheetScrim").addEventListener("click", closeSheet);
     document.addEventListener("keydown", (e) => {
@@ -1641,6 +1656,11 @@
       else closeSheet();
     });
     document.getElementById("sheetPlaceBid").addEventListener("click", onCtaClick);
+    // Split-view chevron collapses back to the floating bid card
+    document.getElementById("splitClose").addEventListener("click", () => setCardStyle("floating"));
+    // Bidding can also be driven from the full-screen lot view
+    document.getElementById("lfToggle").addEventListener("click", toggleBidding);
+    document.getElementById("lfPlaceBid").addEventListener("click", onCtaClick);
 
     // ---- Account sheet (Figma 7580:62351) + user states ----
     const accountOverlay = document.getElementById("accountOverlay");
