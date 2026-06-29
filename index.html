@@ -1013,14 +1013,16 @@
     <div class="panel-group panel-scenarios">
       <p>Test scenarios</p>
       <div class="panel-row">
-        <button data-scenario="watch">1 · Logged out / watch only</button>
-        <button data-scenario="registered">2 · Logged in &amp; registered to bid</button>
-        <button data-scenario="win">3 · Place your bid → win the lot</button>
-        <button data-scenario="sells">4 · Your bid, floor &amp; online bids, sells</button>
-        <button data-scenario="results6">5 · 6 lots listed in results</button>
-        <button data-scenario="landscape">6 · Landscape watch only</button>
-        <button data-scenario="lotview">7 · Open lot view &amp; bid from it</button>
-        <button data-scenario="closelotview">8 · Close lot view</button>
+        <button data-scenario="startSale">1 · Start sale</button>
+        <button data-scenario="watch">2 · Logged out / watch only</button>
+        <button data-scenario="registered">3 · Logged in &amp; registered to bid</button>
+        <button data-scenario="sells">4 · Multiple bids in the stream, then sells</button>
+        <button data-scenario="results">5 · View results</button>
+        <button data-scenario="favorites">6 · View favorites</button>
+        <button data-scenario="win">7 · Place your bid → win the lot</button>
+        <button data-scenario="landscape">8 · Landscape watch only</button>
+        <button data-scenario="lotview">9 · Open lot view &amp; bid from it</button>
+        <button data-scenario="closelotview">10 · Close lot view</button>
       </div>
     </div>
 
@@ -1889,24 +1891,30 @@
       setLandscape(false);
       setCardStyle("floating");
       resetLots();
-      if (name === "watch") {
+      if (name === "startSale") {
+        setSaleState("live");
+      } else if (name === "watch") {
         setUserState("logged-in"); setSaleState("live");
       } else if (name === "registered") {
         setUserState("registered"); setSaleState("live"); enableBidding();
-      } else if (name === "win") {
-        setUserState("registered"); setSaleState("live"); enableBidding();
-        addBid("Mine"); hammerLot();
       } else if (name === "sells") {
-        setUserState("registered"); setSaleState("live"); enableBidding();
-        addBid("Mine"); addBid("In room"); addBid("Online"); addBid("In room"); addBid("Online");
+        // Fill the bid stream with multiple floor/online bids, then hammer it down
+        setUserState("registered"); setSaleState("live");
+        addBid("In room"); addBid("Online"); addBid("In room"); addBid("Online"); addBid("In room");
+        setExpanded(true);
         hammerLot();
-      } else if (name === "results6") {
+      } else if (name === "results") {
         setUserState("registered"); setSaleState("live");
         ALL_LOTS.forEach((l) => {
           if (l.no <= 6) { l.sold = true; l.live = false; if (!l.amount) l.amount = RESULT_AMOUNTS[l.no] || ""; }
           else { l.sold = false; }
         });
         setMainTab("All lots"); selectPill("Results");
+      } else if (name === "favorites") {
+        setSaleState("live"); setMainTab("All lots"); selectPill("Favorites");
+      } else if (name === "win") {
+        setUserState("registered"); setSaleState("live"); enableBidding();
+        addBid("Mine"); hammerLot();
       } else if (name === "landscape") {
         setUserState("logged-in"); setSaleState("live"); setLandscape(true);
       } else if (name === "lotview") {
