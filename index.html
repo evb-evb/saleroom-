@@ -703,6 +703,14 @@
     .panel-scenarios > p { color: #1a1a1a; }
     .panel-scenarios .panel-row { flex-direction: column; align-items: stretch; gap: 8px; }
     .panel-scenarios button { text-align: left; padding: 11px 14px; }
+    /* Collapsible manual controls — keeps the scenario picker uncluttered */
+    .panel-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center;
+      font-family: inherit; font-size: 13px; font-weight: 600; color: #2a2533; cursor: pointer;
+      background: #fff; border: 1px solid #cfcad6; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px; }
+    .panel-toggle:hover { background: #f4f2f7; }
+    .panel-toggle .chev { transition: transform 140ms ease; color: #8b8596; }
+    .panel-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+    .panel-advanced.collapsed { display: none; }
   
     /* ===================== All lots view (Figma 7746:128382) ===================== */
     .all-lots { position: absolute; inset: 0; z-index: 7; background: #fff; display: flex; flex-direction: column;
@@ -1026,6 +1034,9 @@
       </div>
     </div>
 
+    <button class="panel-toggle" id="panelToggle" aria-expanded="false">Manual controls <span class="chev">▸</span></button>
+    <div class="panel-advanced collapsed" id="panelAdvanced">
+
     <div class="panel-group">
       <p>User</p>
       <div class="panel-row">
@@ -1093,6 +1104,7 @@
     </div>
 
     <p class="note"><b>The fix:</b> bid history rises as floating chips in the band <em>below</em> Henry and above the card — never over his face or paddle hand. Toggle the green “Henry zone” to see the keep-clear area the surface is capped to.</p>
+    </div>
   </aside>
   </div><!-- /.stage -->
 
@@ -1924,12 +1936,33 @@
       }
       syncPanel();
     }
+    const panelToggle = document.getElementById("panelToggle");
+    if (panelToggle) panelToggle.addEventListener("click", () => {
+      const adv = document.getElementById("panelAdvanced");
+      const collapsed = adv.classList.toggle("collapsed");
+      panelToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+
     document.querySelectorAll("[data-scenario]").forEach((b) =>
       b.addEventListener("click", () => {
         document.querySelectorAll("[data-scenario]").forEach((x) => x.classList.remove("is-selected"));
         b.classList.add("is-selected");
         runScenario(b.dataset.scenario);
       }));
+
+    // Demo-capture mode: ?demo=<scenario|none>[&t=<sec>] hides the controls and
+    // drives a scenario for clean headless screenshots. No effect in normal use.
+    (function () {
+      const p = new URLSearchParams(location.search);
+      const d = p.get("demo");
+      if (!d) return;
+      const panel = document.querySelector(".panel");
+      if (panel) panel.style.display = "none";
+      if (d === "split") { runScenario("registered"); openSplitView(); }
+      else if (d !== "none") runScenario(d);
+      const t = parseFloat(p.get("t"));
+      if (!isNaN(t)) ["liveVideo", "liveVideoLs"].forEach((id) => { const v = document.getElementById(id); if (v) { try { v.currentTime = t; } catch (e) {} } });
+    })();
 
   </script>
 
