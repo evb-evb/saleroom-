@@ -1771,12 +1771,30 @@
     const muteBtn = document.querySelector(".vc-btn");
     const ICON_MUTED = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 9v6h3l5 4V5L8 9H5z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
     const ICON_UNMUTED = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 9v6h3l5 4V5L8 9H5z" fill="currentColor"/><path d="M15.5 9.5a3.6 3.6 0 010 5M17.8 7.2a7 7 0 010 9.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
-    let muted = true;
-    muteBtn.addEventListener("click", () => {
-      muted = !muted;
-      muteBtn.innerHTML = muted ? ICON_MUTED : ICON_UNMUTED;
-      muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
-    });
+    // Live audio: defaults to sound ON, routed to whichever feed is on screen.
+    let soundOn = true;        // user intent — control shows sound on by default
+    let audioUnlocked = false; // autoplay-with-sound is gated until the first gesture
+    function syncMuteIcon() {
+      muteBtn.innerHTML = soundOn ? ICON_UNMUTED : ICON_MUTED;
+      muteBtn.setAttribute("aria-label", soundOn ? "Mute" : "Unmute");
+    }
+    function applyAudio() {
+      const lv = document.getElementById("liveVideo");
+      const ls = document.getElementById("liveVideoLs");
+      const active = phone.classList.contains("landscape") ? ls : lv;
+      const other = active === lv ? ls : lv;
+      if (other) other.muted = true;            // only the on-screen feed is audible
+      if (active) {
+        // Stay muted (so autoplay keeps running) until a gesture unlocks sound.
+        active.muted = !(soundOn && audioUnlocked);
+        const p = active.play(); if (p && p.catch) p.catch(() => {});
+      }
+      syncMuteIcon();
+    }
+    muteBtn.addEventListener("click", () => { audioUnlocked = true; soundOn = !soundOn; applyAudio(); });
+    // Audible autoplay is gated until the first interaction — engage sound then.
+    document.addEventListener("pointerdown", () => { audioUnlocked = true; applyAudio(); }, { once: true });
+    applyAudio();
 
     // Full-screen landscape watch (watch-only users). The icon swaps between
     // "expand" (enter) and "compress" (exit).
@@ -1788,6 +1806,7 @@
       fsBtn.innerHTML = on ? ICON_COMPRESS : ICON_EXPAND;
       fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
       fsBtn.setAttribute("aria-label", on ? "Exit full screen" : "Watch full screen");
+      applyAudio(); // move sound to the now-on-screen feed
     }
     fsBtn.addEventListener("click", () => setLandscape(!phone.classList.contains("landscape")));
 
