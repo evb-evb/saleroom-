@@ -2041,24 +2041,27 @@
       const playBtn = document.getElementById("presentPlay");
       const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 5v14M15 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
       const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 5l12 7-12 7V5z" fill="currentColor"/></svg>';
-      const speed = Math.max(2000, parseInt(params.get("speed") || "4000", 10));
+      // Per-state pacing: quick where it can be, a beat longer for dense screens.
+      // A ?speed= override forces a uniform pace across all states.
+      const uniform = params.has("speed") ? Math.max(1500, parseInt(params.get("speed"), 10)) : null;
+      let curDur = 4000;
       function resetView() { closeLotFull(); closeAccount(); setLandscape(false); setCardStyle("floating"); }
       function muteDemo() {
-        fxTimers.push(setTimeout(() => { soundOn = false; syncMuteIcon(); applyAudio(); }, Math.round(speed * 0.30)));
-        fxTimers.push(setTimeout(() => { soundOn = true; syncMuteIcon(); applyAudio(); }, Math.round(speed * 0.62)));
+        fxTimers.push(setTimeout(() => { soundOn = false; syncMuteIcon(); applyAudio(); }, Math.round(curDur * 0.30)));
+        fxTimers.push(setTimeout(() => { soundOn = true; syncMuteIcon(); applyAudio(); }, Math.round(curDur * 0.62)));
       }
       const STEPS = [
-        { cap: "The sale begins soon", go: () => { resetView(); setUserState("registered"); setSaleState("holding"); } },
-        { cap: "Logged out — watch only", go: () => { resetView(); runScenario("watch"); }, fx: muteDemo },
-        { cap: "Full-screen watch", go: () => { resetView(); runScenario("watch"); setLandscape(true); } },
-        { cap: "Live sale — registered to bid", go: () => { resetView(); runScenario("registered"); } },
-        { cap: "Your account", go: () => { resetView(); runScenario("registered"); openAccount(); } },
-        { cap: "Competing bids — you win", go: () => { resetView(); runScenario("registered"); enableBidding(); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); } },
-        { cap: "Competing bids — outbid", go: () => { resetView(); runScenario("registered"); enableBidding(); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); } },
-        { cap: "Split view — card over the live feed", go: () => { resetView(); runScenario("registered"); openSplitView(); } },
-        { cap: "Full lot view — details & bidding", go: () => { resetView(); runScenario("registered"); openLotFull(); } },
-        { cap: "Auction results", go: () => { resetView(); runScenario("results"); } },
-        { cap: "Your favorites", go: () => { resetView(); runScenario("favorites"); } },
+        { cap: "The sale begins soon", hold: 3000, go: () => { resetView(); setUserState("registered"); setSaleState("holding"); } },
+        { cap: "Logged out — watch only", hold: 4000, go: () => { resetView(); runScenario("watch"); }, fx: muteDemo },
+        { cap: "Full-screen watch", hold: 3200, go: () => { resetView(); runScenario("watch"); setLandscape(true); } },
+        { cap: "Live sale — registered to bid", hold: 3500, go: () => { resetView(); runScenario("registered"); } },
+        { cap: "Your account", hold: 4500, go: () => { resetView(); runScenario("registered"); openAccount(); } },
+        { cap: "Competing bids — you win", hold: 4800, go: () => { resetView(); runScenario("registered"); enableBidding(); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); } },
+        { cap: "Competing bids — outbid", hold: 4800, go: () => { resetView(); runScenario("registered"); enableBidding(); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); } },
+        { cap: "Split view — card over the live feed", hold: 3500, go: () => { resetView(); runScenario("registered"); openSplitView(); } },
+        { cap: "Full lot view — details & bidding", hold: 4800, go: () => { resetView(); runScenario("registered"); openLotFull(); } },
+        { cap: "Auction results", hold: 4000, go: () => { resetView(); runScenario("results"); } },
+        { cap: "Your favorites", hold: 3200, go: () => { resetView(); runScenario("favorites"); } },
       ];
       let idx = 0, timer = null, fxTimers = [], paused = false;
       function apply(i) {
@@ -2066,8 +2069,9 @@
         idx = (i + STEPS.length) % STEPS.length;
         const s = STEPS[idx];
         s.go(); fit(); banner.textContent = s.cap;
+        curDur = uniform || s.hold || 4000;
         if (s.fx) s.fx();
-        if (!paused) timer = setTimeout(() => apply(idx + 1), speed);
+        if (!paused) timer = setTimeout(() => apply(idx + 1), curDur);
       }
       document.getElementById("presentNext").addEventListener("click", () => apply(idx + 1));
       document.getElementById("presentPrev").addEventListener("click", () => apply(idx - 1));
@@ -2076,7 +2080,7 @@
         playBtn.innerHTML = paused ? ICON_PLAY : ICON_PAUSE;
         playBtn.setAttribute("aria-label", paused ? "Play" : "Pause");
         clearTimeout(timer);
-        if (!paused) timer = setTimeout(() => apply(idx + 1), speed);
+        if (!paused) timer = setTimeout(() => apply(idx + 1), curDur);
       });
       apply(0);
     })();
