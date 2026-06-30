@@ -1027,7 +1027,7 @@
         <button data-scenario="startSale">1 · Start sale</button>
         <button data-scenario="watch">2 · Logged out / watch only</button>
         <button data-scenario="registered">3 · Logged in &amp; registered to bid</button>
-        <button data-scenario="sells">4 · Multiple bids in the stream, then sells</button>
+        <button data-scenario="competing">4 · Competing floor &amp; advance bids</button>
         <button data-scenario="results">5 · View results</button>
         <button data-scenario="favorites">6 · View favorites</button>
         <button data-scenario="win">7 · Place your bid → win the lot</button>
@@ -1934,13 +1934,12 @@
         setUserState("logged-in"); setSaleState("live");
       } else if (name === "registered") {
         setUserState("registered"); setSaleState("live"); enableBidding();
-      } else if (name === "sells") {
-        // Fill the bid stream with multiple bids, then hammer it down. Leave the
-        // stream collapsed so it shows 2 bids + "Show more" (expands to 4).
-        setUserState("registered"); setSaleState("live");
-        addBid("In room"); addBid("Online"); addBid("In room"); addBid("Online"); addBid("In room");
+      } else if (name === "competing") {
+        // Competing floor + advance bids coming in; user is toggled on to bid; lot
+        // stays live (not sold). Stream collapsed: 2 bids + "Show more" (expands to 4).
+        setUserState("registered"); setSaleState("live"); enableBidding();
+        addBid("In room"); addBid("Advance"); addBid("In room"); addBid("Advance"); addBid("In room");
         setExpanded(false);
-        hammerLot();
       } else if (name === "results") {
         setUserState("registered"); setSaleState("live");
         ALL_LOTS.forEach((l) => {
