@@ -1984,7 +1984,11 @@
       const panel = document.querySelector(".panel");
       if (panel) panel.style.display = "none";
       if (d === "split") { runScenario("registered"); openSplitView(); }
+      else if (d === "account") { runScenario("registered"); openAccount(); }
+      else if (d === "cwin") { runScenario("registered"); enableBidding(); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); }
+      else if (d === "close") { runScenario("registered"); enableBidding(); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); }
       else if (d !== "none") runScenario(d);
+      if (p.get("mute") === "1") { soundOn = false; syncMuteIcon(); }
       const t = parseFloat(p.get("t"));
       if (!isNaN(t)) ["liveVideo", "liveVideoLs"].forEach((id) => { const v = document.getElementById(id); if (v) { try { v.pause(); v.currentTime = t; } catch (e) {} } });
     })();
