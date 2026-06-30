@@ -1935,10 +1935,11 @@
       } else if (name === "registered") {
         setUserState("registered"); setSaleState("live"); enableBidding();
       } else if (name === "sells") {
-        // Fill the bid stream with multiple floor/online bids, then hammer it down
+        // Fill the bid stream with multiple bids, then hammer it down. Leave the
+        // stream collapsed so it shows 2 bids + "Show more" (expands to 4).
         setUserState("registered"); setSaleState("live");
         addBid("In room"); addBid("Online"); addBid("In room"); addBid("Online"); addBid("In room");
-        setExpanded(true);
+        setExpanded(false);
         hammerLot();
       } else if (name === "results") {
         setUserState("registered"); setSaleState("live");
