@@ -2023,8 +2023,15 @@
       // Fit the phone to the viewport, leaving a clear band below for caption + controls.
       const phoneEl = document.getElementById("phone");
       function fit() {
-        const s = Math.min(1, Math.max(0.5, (window.innerHeight - 240) / 856));
-        phoneEl.style.transform = "scale(" + s + ")";
+        // Measure the phone's real size (portrait OR landscape) and scale to fill,
+        // leaving a band below for the caption + controls.
+        phoneEl.style.transform = "none";
+        const w = phoneEl.offsetWidth || 393, h = phoneEl.offsetHeight || 856;
+        const availW = window.innerWidth - 40, availH = window.innerHeight - 240;
+        const s = Math.max(0.5, Math.min(1.4, Math.min(availW / w, availH / h)));
+        // Top-anchor the tall portrait phone; vertically centre the short landscape one.
+        const ty = phoneEl.classList.contains("landscape") ? Math.max(0, (availH - h * s) / 2) : 0;
+        phoneEl.style.transform = "translateY(" + ty + "px) scale(" + s + ")";
         phoneEl.style.transformOrigin = "top center";
       }
       fit(); window.addEventListener("resize", fit);
@@ -2056,7 +2063,7 @@
         clearTimeout(timer); fxTimers.forEach(clearTimeout); fxTimers = [];
         idx = (i + STEPS.length) % STEPS.length;
         const s = STEPS[idx];
-        s.go(); banner.textContent = s.cap;
+        s.go(); fit(); banner.textContent = s.cap;
         if (s.fx) s.fx();
         if (!paused) timer = setTimeout(() => apply(idx + 1), speed);
       }
