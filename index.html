@@ -2041,7 +2041,7 @@
       const playBtn = document.getElementById("presentPlay");
       const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 5v14M15 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
       const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 5l12 7-12 7V5z" fill="currentColor"/></svg>';
-      const speed = Math.max(2000, parseInt(params.get("speed") || "5000", 10));
+      const speed = Math.max(2000, parseInt(params.get("speed") || "4000", 10));
       function resetView() { closeLotFull(); closeAccount(); setLandscape(false); setCardStyle("floating"); }
       function muteDemo() {
         fxTimers.push(setTimeout(() => { soundOn = false; syncMuteIcon(); applyAudio(); }, Math.round(speed * 0.30)));
