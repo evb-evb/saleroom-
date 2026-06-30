@@ -2051,9 +2051,9 @@
         fxTimers.push(setTimeout(() => { soundOn = true; syncMuteIcon(); applyAudio(); }, Math.round(curDur * 0.62)));
       }
       const STEPS = [
-        { cap: "The sale begins soon", hold: 3000, go: () => { resetView(); setUserState("registered"); setSaleState("holding"); } },
+        { cap: "The sale begins soon", hold: 3500, go: () => { resetView(); setUserState("registered"); setSaleState("holding"); } },
         { cap: "Logged out — watch only", hold: 4000, go: () => { resetView(); runScenario("watch"); }, fx: muteDemo },
-        { cap: "Full-screen watch", hold: 3200, go: () => { resetView(); runScenario("watch"); setLandscape(true); } },
+        { cap: "Full-screen watch", hold: 3500, go: () => { resetView(); runScenario("watch"); setLandscape(true); } },
         { cap: "Live sale — registered to bid", hold: 3500, go: () => { resetView(); runScenario("registered"); } },
         { cap: "Your account", hold: 4500, go: () => { resetView(); runScenario("registered"); openAccount(); } },
         { cap: "Competing bids — you win", hold: 4800, go: () => { resetView(); runScenario("registered"); enableBidding(); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); } },
@@ -2061,7 +2061,7 @@
         { cap: "Split view — card over the live feed", hold: 3500, go: () => { resetView(); runScenario("registered"); openSplitView(); } },
         { cap: "Full lot view — details & bidding", hold: 4800, go: () => { resetView(); runScenario("registered"); openLotFull(); } },
         { cap: "Auction results", hold: 4000, go: () => { resetView(); runScenario("results"); } },
-        { cap: "Your favorites", hold: 3200, go: () => { resetView(); runScenario("favorites"); } },
+        { cap: "Your favorites", hold: 3500, go: () => { resetView(); runScenario("favorites"); } },
       ];
       let idx = 0, timer = null, fxTimers = [], paused = false;
       function apply(i) {
