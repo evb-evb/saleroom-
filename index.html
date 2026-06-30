@@ -257,7 +257,7 @@
       transition: max-height 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease 500ms;
       width: calc(100% - 8px);
     }
-    .phone.is-expanded .bid-history { max-height: 128px; overflow-y: auto; }
+    .phone.is-expanded .bid-history { max-height: 152px; overflow-y: auto; }
     .bid-row {
       display: flex; align-items: center; justify-content: space-between;
       width: 100%; padding: 4px; color: #fff;
@@ -1186,7 +1186,8 @@
       const expanded = phone.classList.contains("is-expanded");
       history.innerHTML = "";
       const banner = fairWarning || lotState === "sold";
-      const visible = expanded ? bids.slice(-4) : bids.slice(banner ? -1 : -2);
+      // Collapsed: 2 most recent bids. Expanded ("Show more"): 2 more (4 total).
+      const visible = expanded ? bids.slice(-4) : bids.slice(-2);
       visible.forEach((b, i) => { const isWin = i === visible.length - 1; history.appendChild(expanded ? makeChip(b.src, b.amt, isWin) : makeRow(b.src, b.amt, isWin)); });
       if (fairWarning) {
         const li = document.createElement("li");
@@ -1199,6 +1200,8 @@
         li.textContent = "Sold";
         history.appendChild(li);
       }
+      // "Show more" only when there are more than the 2 shown
+      streamToggle.style.display = bids.length > 2 ? "" : "none";
       history.scrollTop = history.scrollHeight;
       renderLfBids();
     }
@@ -1469,7 +1472,7 @@
       streamLabel.textContent = on ? "Show less" : "Show more";
       renderHistory();
       syncPanel();
-      const toH = Math.min(on ? 128 : 96, history.scrollHeight);
+      const toH = Math.min(on ? 152 : 96, history.scrollHeight);
       if (on) {
         // Growing: new content is taller than the box, so the max-height cap
         // drives the visible height — tween the cap up.
