@@ -706,6 +706,26 @@
     .panel-scenarios > p { color: #1a1a1a; }
     .panel-scenarios .panel-row { flex-direction: column; align-items: stretch; gap: 8px; }
     .panel-scenarios button { text-align: left; padding: 11px 14px; }
+    .scn-hint { color: #6b6577 !important; font-size: 12px; line-height: 1.45; margin: -4px 0 12px; }
+    .scn-row { display: flex; gap: 6px; align-items: stretch; }
+    .scn-row > button[data-scenario] { flex: 1 1 auto; }
+    .scn-copy { flex: 0 0 auto; width: 42px; padding: 0 !important; text-align: center !important; display: flex; align-items: center; justify-content: center; color: #6b6577; }
+    .scn-copy::before { content: "🔗"; font-size: 15px; line-height: 1; }
+    .scn-copy.is-copied { color: #1a7f4b; border-color: #1a7f4b; }
+    .scn-copy.is-copied::before { content: "✓"; font-size: 16px; }
+    /* ?screen= deep-link: hide dev panel for a clean shareable screen, offer a reveal toggle */
+    body.screenlink .panel { display: none !important; }
+    body.screenlink.controls-open .panel { display: block !important; }
+    .screen-reveal { display: none; position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 12px; z-index: 9000;
+      font: 600 12px/1 -apple-system, system-ui, sans-serif; letter-spacing: .02em; color: #1a1a1a;
+      background: rgba(255,255,255,.92); border: 1px solid #d9d6d1; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(40,30,60,.14); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    body.screenlink .screen-reveal { display: block; }
+    .copy-toast { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(8px);
+      z-index: 9500; background: #1a1a1a; color: #fff; font: 500 13px/1 -apple-system, system-ui, sans-serif;
+      padding: 11px 18px; border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,.28);
+      opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
+    .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     /* Collapsible manual controls — keeps the scenario picker uncluttered */
     .panel-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center;
       font-family: inherit; font-size: 13px; font-weight: 600; color: #2a2533; cursor: pointer;
@@ -1037,17 +1057,18 @@
 
     <div class="panel-group panel-scenarios">
       <p>Test scenarios</p>
+      <p class="scn-hint">Tap to preview. Use the link icon to copy a shareable URL that opens the prototype straight to that screen — handy for JIRA tickets.</p>
       <div class="panel-row">
-        <button data-scenario="startSale">1 · Start sale</button>
-        <button data-scenario="watch">2 · Logged out / watch only</button>
-        <button data-scenario="registered">3 · Logged in &amp; registered to bid</button>
-        <button data-scenario="competing">4 · Competing floor &amp; advance bids</button>
-        <button data-scenario="results">5 · View results</button>
-        <button data-scenario="favorites">6 · View favorites</button>
-        <button data-scenario="win">7 · Place your bid → win the lot</button>
-        <button data-scenario="landscape">8 · Landscape watch only</button>
-        <button data-scenario="lotview">9 · Open lot view &amp; bid from it</button>
-        <button data-scenario="closelotview">10 · Close lot view</button>
+        <div class="scn-row"><button data-scenario="startSale">1 · Start sale</button><button class="scn-copy" data-copy="startSale" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="watch">2 · Logged out / watch only</button><button class="scn-copy" data-copy="watch" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="registered">3 · Logged in &amp; registered to bid</button><button class="scn-copy" data-copy="registered" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="competing">4 · Competing floor &amp; advance bids</button><button class="scn-copy" data-copy="competing" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="results">5 · View results</button><button class="scn-copy" data-copy="results" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="favorites">6 · View favorites</button><button class="scn-copy" data-copy="favorites" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="win">7 · Place your bid → win the lot</button><button class="scn-copy" data-copy="win" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="landscape">8 · Landscape watch only</button><button class="scn-copy" data-copy="landscape" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="lotview">9 · Open lot view &amp; bid from it</button><button class="scn-copy" data-copy="lotview" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-scenario="closelotview">10 · Close lot view</button><button class="scn-copy" data-copy="closelotview" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
       </div>
     </div>
 
@@ -1132,6 +1153,9 @@
     <button id="presentNext" aria-label="Next"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
   </div><!-- /.stage -->
+
+  <button class="screen-reveal" id="screenReveal" aria-label="Toggle controls">Controls</button>
+  <div class="copy-toast" id="copyToast" role="status" aria-live="polite">Link copied</div>
 
   <script>
     const phone        = document.getElementById("phone");
@@ -1996,6 +2020,59 @@
         b.classList.add("is-selected");
         runScenario(b.dataset.scenario);
       }));
+
+    // ---- Shareable per-screen deep links (?screen=<name>) ----
+    // Every scenario has a stable URL that opens the prototype straight to that
+    // state — meant for pasting into JIRA tickets. The copy icons grab the link;
+    // the loader below applies it and hides the dev panel for a clean shared view.
+    const screenLink = (name) => location.origin + location.pathname + "?screen=" + name;
+    const copyToast = document.getElementById("copyToast");
+    let toastTimer;
+    function showToast(msg) {
+      copyToast.textContent = msg;
+      copyToast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => copyToast.classList.remove("show"), 1600);
+    }
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    // Always resolves: try the async clipboard API, fall back to execCommand if it
+    // rejects (page not focused, insecure context) so the confirmation always fires.
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      }
+      return Promise.resolve(fallbackCopy(text));
+    }
+    document.querySelectorAll("[data-copy]").forEach((b) =>
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const url = screenLink(b.dataset.copy);
+        copyText(url).then(() => {
+          b.classList.add("is-copied");
+          setTimeout(() => b.classList.remove("is-copied"), 1400);
+          showToast("Link copied — opens to this screen");
+        });
+      }));
+
+    const screenReveal = document.getElementById("screenReveal");
+    if (screenReveal) screenReveal.addEventListener("click", () => {
+      const open = document.body.classList.toggle("controls-open");
+      screenReveal.textContent = open ? "Hide controls" : "Controls";
+    });
+
+    (function () {
+      const name = new URLSearchParams(location.search).get("screen");
+      if (!name) return;
+      document.body.classList.add("screenlink");
+      const btn = document.querySelector('[data-scenario="' + name + '"]');
+      if (btn) { btn.classList.add("is-selected"); runScenario(name); }
+    })();
 
     // Demo-capture mode: ?demo=<scenario|none>[&t=<sec>] hides the controls and
     // drives a scenario for clean headless screenshots. No effect in normal use.
