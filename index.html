@@ -707,6 +707,7 @@
     .panel-scenarios .panel-row { flex-direction: column; align-items: stretch; gap: 8px; }
     .panel-scenarios button { text-align: left; padding: 11px 14px; }
     .scn-hint { color: #6b6577 !important; font-size: 12px; line-height: 1.45; margin: -4px 0 12px; }
+    .scn-sub { color: #6b6577 !important; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin: 16px 0 8px; }
     .scn-row { display: flex; gap: 6px; align-items: stretch; }
     .scn-row > button[data-scenario] { flex: 1 1 auto; }
     .scn-copy { flex: 0 0 auto; width: 42px; padding: 0 !important; text-align: center !important; display: flex; align-items: center; justify-content: center; color: #6b6577; }
@@ -1069,6 +1070,13 @@
         <div class="scn-row"><button data-scenario="landscape">8 · Landscape watch only</button><button class="scn-copy" data-copy="landscape" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
         <div class="scn-row"><button data-scenario="lotview">9 · Open lot view &amp; bid from it</button><button class="scn-copy" data-copy="lotview" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
         <div class="scn-row"><button data-scenario="closelotview">10 · Close lot view</button><button class="scn-copy" data-copy="closelotview" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+      </div>
+      <p class="scn-sub">Detail screens</p>
+      <div class="panel-row">
+        <div class="scn-row"><button data-screen="split">Split view — card over feed</button><button class="scn-copy" data-copy="split" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-screen="account">Your account</button><button class="scn-copy" data-copy="account" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-screen="cwin">Competing bids — you win</button><button class="scn-copy" data-copy="cwin" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-screen="outbid">Competing bids — outbid</button><button class="scn-copy" data-copy="outbid" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
       </div>
     </div>
 
@@ -2025,6 +2033,24 @@
     // Every scenario has a stable URL that opens the prototype straight to that
     // state — meant for pasting into JIRA tickets. The copy icons grab the link;
     // the loader below applies it and hides the dev panel for a clean shared view.
+    // Detail screens are composites (a scenario plus a follow-on action) that
+    // aren't plain scenario presets, so they get their own applier here.
+    const EXTRA_SCREENS = {
+      split: () => { runScenario("registered"); openSplitView(); },
+      account: () => { runScenario("registered"); openAccount(); },
+      cwin: () => { runScenario("registered"); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); },
+      outbid: () => { runScenario("registered"); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); },
+    };
+    function applyScreen(name) {
+      if (EXTRA_SCREENS[name]) { EXTRA_SCREENS[name](); return true; }
+      if (document.querySelector('[data-scenario="' + name + '"]')) { runScenario(name); return true; }
+      return false;
+    }
+    document.querySelectorAll("[data-screen]").forEach((b) =>
+      b.addEventListener("click", () => {
+        document.querySelectorAll("[data-scenario]").forEach((x) => x.classList.remove("is-selected"));
+        applyScreen(b.dataset.screen);
+      }));
     const screenLink = (name) => location.origin + location.pathname + "?screen=" + name;
     const copyToast = document.getElementById("copyToast");
     let toastTimer;
@@ -2071,7 +2097,8 @@
       if (!name) return;
       document.body.classList.add("screenlink");
       const btn = document.querySelector('[data-scenario="' + name + '"]');
-      if (btn) { btn.classList.add("is-selected"); runScenario(name); }
+      if (btn) btn.classList.add("is-selected");
+      applyScreen(name);
     })();
 
     // Demo-capture mode: ?demo=<scenario|none>[&t=<sec>] hides the controls and
