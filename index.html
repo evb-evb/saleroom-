@@ -1207,7 +1207,7 @@
   <div class="studio" id="studio">
     <button class="studio-btn studio-rec" id="studioRec" title="Record the screen (with narration)"><span class="dot"></span><span id="studioRecLabel">Record</span></button>
     <span class="studio-time" id="studioTime">0:00</span>
-    <button class="studio-btn is-on" id="studioMic" title="Include microphone / narration" aria-pressed="true">🎙 Mic</button>
+    <button class="studio-btn" id="studioMic" title="Add your voice / narration (off = record only the video's sound)" aria-pressed="false">🎙 Mic</button>
     <span class="studio-sep"></span>
     <button class="studio-btn" id="studioDraw" title="Annotate on top of the prototype" aria-pressed="false">✎ Draw</button>
     <span class="studio-colors" id="studioColors">
@@ -2304,8 +2304,8 @@
         colors.querySelectorAll(".swatch").forEach((s) => s.classList.toggle("is-active", s === sw));
       });
 
-      // ---- Mic toggle ----
-      let micOn = true;
+      // ---- Mic toggle (off by default: capture only the video's own sound) ----
+      let micOn = false;
       micBtn.addEventListener("click", () => {
         micOn = !micOn;
         micBtn.classList.toggle("is-on", micOn);
@@ -2314,7 +2314,7 @@
 
       // ---- Screen recording (screen video + system + mic audio) ----
       let recorder = null, chunks = [], stopTracks = [], audioCtx = null;
-      let recording = false, tStart = 0, tTimer = null, lastURL = null;
+      let recording = false, tStart = 0, tTimer = null, lastURL = null, hadAudio = false;
 
       function fmt(s) { const m = Math.floor(s / 60); const r = s % 60; return m + ":" + String(r).padStart(2, "0"); }
       function tick() { timeEl.textContent = fmt(Math.floor((Date.now() - tStart) / 1000)); }
@@ -2322,7 +2322,11 @@
       async function start() {
         let display;
         try {
-          display = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+          // preferCurrentTab surfaces the "Share tab audio" option so the video's
+          // own sound (the auctioneer) is captured without extra picking.
+          display = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 30 }, audio: true, preferCurrentTab: true,
+          });
         } catch (err) { return; } // user cancelled the picker
         stopTracks = [];
         const videoTrack = display.getVideoTracks()[0];
@@ -2346,6 +2350,7 @@
           audioTracks = dest.stream.getAudioTracks();
         } else if (mic) { audioTracks = mic.getAudioTracks(); }
         else { audioTracks = dispAudio; }
+        hadAudio = audioTracks.length > 0;
 
         const stream = new MediaStream([videoTrack, ...audioTracks]);
         const mime = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
@@ -2382,6 +2387,7 @@
         dlLink.href = lastURL;
         dlLink.textContent = "↓ Save video (" + stamp + ")";
         dlLink.style.display = "";
+        if (!hadAudio) showToast("Saved — but no audio. Tick “Share tab audio” in the dialog next time.");
       }
 
       recBtn.addEventListener("click", () => {
