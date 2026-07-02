@@ -77,7 +77,7 @@
     }
     @media (max-width: 820px) {
       .stage { flex-direction: column; align-items: center; width: auto; }
-      .panel { width: var(--frame-w); max-width: 100%; }
+      .panel { width: var(--frame-w); max-width: 100%; position: static; max-height: none; overflow: visible; }
     }
 
     /* ===================== Phone frame ===================== */
@@ -680,7 +680,9 @@
     }
 
     /* ===================== Side control panel ===================== */
-    .panel { width: 280px; flex: none; padding-top: 8px; }
+    .panel { width: 300px; flex: none; padding-top: 8px;
+      position: sticky; top: 40px; align-self: flex-start;
+      max-height: calc(100vh - 80px); overflow-y: auto; overscroll-behavior: contain; }
     .panel h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
     .panel .sub { font-size: 13px; color: #5a5566; margin-bottom: 20px; line-height: 1.5; }
     .panel-group { margin-bottom: 20px; }
@@ -727,6 +729,41 @@
       padding: 11px 18px; border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,.28);
       opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
     .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ===================== Record & annotate studio ===================== */
+    /* Full-viewport drawing surface. Pointer-transparent unless drawing is armed,
+       so the prototype stays fully usable between annotations. */
+    #annoCanvas { position: fixed; inset: 0; z-index: 8000; pointer-events: none; touch-action: none; }
+    body.drawing #annoCanvas { pointer-events: auto; cursor: crosshair; }
+    /* Floating studio toolbar — always reachable while recording. */
+    .studio { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+      z-index: 9600; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      background: rgba(26,26,26,.94); border-radius: 999px; box-shadow: 0 8px 30px rgba(0,0,0,.32);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      font: 600 12.5px/1 -apple-system, system-ui, sans-serif; color: #fff; }
+    .studio-btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px;
+      border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); color: #fff;
+      border-radius: 999px; cursor: pointer; white-space: nowrap; text-decoration: none;
+      transition: background 120ms ease, border-color 120ms ease; }
+    .studio-btn:hover { background: rgba(255,255,255,.18); }
+    .studio-btn.is-on { background: #fff; color: #1a1a1a; border-color: #fff; }
+    .studio-rec .dot { width: 10px; height: 10px; border-radius: 50%; background: #e4002b; }
+    .studio.is-recording .studio-rec { background: #e4002b; border-color: #e4002b; color: #fff; }
+    .studio.is-recording .studio-rec .dot { background: #fff; animation: recpulse 1.1s ease-in-out infinite; }
+    @keyframes recpulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+    .studio-time { font-variant-numeric: tabular-nums; min-width: 42px; text-align: center; opacity: .9; display: none; }
+    .studio.is-recording .studio-time { display: inline-block; }
+    .studio-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.18); margin: 2px 2px; }
+    .studio-colors { display: none; align-items: center; gap: 6px; }
+    body.drawing .studio-colors { display: inline-flex; }
+    .swatch { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,.5); cursor: pointer; padding: 0; }
+    .swatch.is-active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
+    .studio-dl { background: #39d353; border-color: #39d353; color: #05320f; }
+    .studio-dl:hover { background: #2fbe49; }
+    /* The studio is an authoring tool — never show it in shared/presentation views. */
+    body.present .studio, body.present #annoCanvas,
+    body.screenlink .studio, body.screenlink #annoCanvas { display: none !important; }
+    @media (max-width: 480px) { .studio { gap: 6px; padding: 7px 9px; } .studio-btn { padding: 0 11px; } }
     /* Collapsible manual controls — keeps the scenario picker uncluttered */
     .panel-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center;
       font-family: inherit; font-size: 13px; font-weight: 600; color: #2a2533; cursor: pointer;
@@ -1080,8 +1117,8 @@
       </div>
     </div>
 
-    <button class="panel-toggle" id="panelToggle" aria-expanded="false">Manual controls <span class="chev">▸</span></button>
-    <div class="panel-advanced collapsed" id="panelAdvanced">
+    <button class="panel-toggle" id="panelToggle" aria-expanded="true">Manual controls <span class="chev">▸</span></button>
+    <div class="panel-advanced" id="panelAdvanced">
 
     <div class="panel-group">
       <p>User</p>
@@ -1164,6 +1201,26 @@
 
   <button class="screen-reveal" id="screenReveal" aria-label="Toggle controls">Controls</button>
   <div class="copy-toast" id="copyToast" role="status" aria-live="polite">Link copied</div>
+
+  <!-- Record & annotate studio (authoring only; hidden in shared/presentation views) -->
+  <canvas id="annoCanvas"></canvas>
+  <div class="studio" id="studio">
+    <button class="studio-btn studio-rec" id="studioRec" title="Record the screen (with narration)"><span class="dot"></span><span id="studioRecLabel">Record</span></button>
+    <span class="studio-time" id="studioTime">0:00</span>
+    <button class="studio-btn is-on" id="studioMic" title="Include microphone / narration" aria-pressed="true">🎙 Mic</button>
+    <span class="studio-sep"></span>
+    <button class="studio-btn" id="studioDraw" title="Annotate on top of the prototype" aria-pressed="false">✎ Draw</button>
+    <span class="studio-colors" id="studioColors">
+      <button class="swatch is-active" data-color="#e4002b" style="background:#e4002b" aria-label="Red"></button>
+      <button class="swatch" data-color="#f5c518" style="background:#f5c518" aria-label="Yellow"></button>
+      <button class="swatch" data-color="#33c3ff" style="background:#33c3ff" aria-label="Blue"></button>
+      <button class="swatch" data-color="#ffffff" style="background:#ffffff" aria-label="White"></button>
+      <button class="swatch" data-color="#111111" style="background:#111111" aria-label="Black"></button>
+    </span>
+    <button class="studio-btn" id="studioClear" title="Clear annotations" style="display:none">Clear</button>
+    <span class="studio-sep"></span>
+    <a class="studio-btn studio-dl" id="studioDownload" download="saleroom-recording.webm" style="display:none">↓ Save video</a>
+  </div>
 
   <script>
     const phone        = document.getElementById("phone");
@@ -2187,6 +2244,153 @@
         if (!paused) timer = setTimeout(() => apply(idx + 1), curDur);
       });
       apply(0);
+    })();
+
+    // ================= Record & annotate studio =================
+    (function () {
+      const studio   = document.getElementById("studio");
+      const recBtn   = document.getElementById("studioRec");
+      const recLabel = document.getElementById("studioRecLabel");
+      const timeEl   = document.getElementById("studioTime");
+      const micBtn   = document.getElementById("studioMic");
+      const drawBtn  = document.getElementById("studioDraw");
+      const clearBtn = document.getElementById("studioClear");
+      const dlLink   = document.getElementById("studioDownload");
+      const colors   = document.getElementById("studioColors");
+      const canvas   = document.getElementById("annoCanvas");
+      if (!studio) return;
+      const ctx = canvas.getContext("2d");
+
+      // ---- Annotation overlay ----
+      let drawing = false, penColor = "#e4002b", last = null;
+      function sizeCanvas() {
+        const r = window.devicePixelRatio || 1;
+        canvas.width = Math.round(window.innerWidth * r);
+        canvas.height = Math.round(window.innerHeight * r);
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        ctx.setTransform(r, 0, 0, r, 0, 0);
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+      }
+      sizeCanvas();
+      // Redraw is not preserved across resizes — annotations are transient by design.
+      window.addEventListener("resize", sizeCanvas);
+
+      canvas.addEventListener("pointerdown", (e) => {
+        if (!document.body.classList.contains("drawing")) return;
+        drawing = true; last = { x: e.clientX, y: e.clientY };
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener("pointermove", (e) => {
+        if (!drawing) return;
+        ctx.strokeStyle = penColor; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(e.clientX, e.clientY); ctx.stroke();
+        last = { x: e.clientX, y: e.clientY };
+      });
+      const endStroke = () => { drawing = false; };
+      canvas.addEventListener("pointerup", endStroke);
+      canvas.addEventListener("pointercancel", endStroke);
+
+      drawBtn.addEventListener("click", () => {
+        const on = document.body.classList.toggle("drawing");
+        drawBtn.classList.toggle("is-on", on);
+        drawBtn.setAttribute("aria-pressed", String(on));
+        clearBtn.style.display = on ? "" : "none";
+      });
+      clearBtn.addEventListener("click", () => ctx.clearRect(0, 0, canvas.width, canvas.height));
+      colors.addEventListener("click", (e) => {
+        const sw = e.target.closest(".swatch"); if (!sw) return;
+        penColor = sw.dataset.color;
+        colors.querySelectorAll(".swatch").forEach((s) => s.classList.toggle("is-active", s === sw));
+      });
+
+      // ---- Mic toggle ----
+      let micOn = true;
+      micBtn.addEventListener("click", () => {
+        micOn = !micOn;
+        micBtn.classList.toggle("is-on", micOn);
+        micBtn.setAttribute("aria-pressed", String(micOn));
+      });
+
+      // ---- Screen recording (screen video + system + mic audio) ----
+      let recorder = null, chunks = [], stopTracks = [], audioCtx = null;
+      let recording = false, tStart = 0, tTimer = null, lastURL = null;
+
+      function fmt(s) { const m = Math.floor(s / 60); const r = s % 60; return m + ":" + String(r).padStart(2, "0"); }
+      function tick() { timeEl.textContent = fmt(Math.floor((Date.now() - tStart) / 1000)); }
+
+      async function start() {
+        let display;
+        try {
+          display = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
+        } catch (err) { return; } // user cancelled the picker
+        stopTracks = [];
+        const videoTrack = display.getVideoTracks()[0];
+        stopTracks.push(videoTrack);
+        const dispAudio = display.getAudioTracks();
+        dispAudio.forEach((t) => stopTracks.push(t));
+
+        let mic = null;
+        if (micOn) {
+          try { mic = await navigator.mediaDevices.getUserMedia({ audio: true }); mic.getTracks().forEach((t) => stopTracks.push(t)); }
+          catch (err) { /* mic denied — continue with system audio only */ }
+        }
+
+        // Mix system + mic into one audio track when both exist.
+        let audioTracks = [];
+        if (dispAudio.length && mic) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const dest = audioCtx.createMediaStreamDestination();
+          audioCtx.createMediaStreamSource(new MediaStream(dispAudio)).connect(dest);
+          audioCtx.createMediaStreamSource(mic).connect(dest);
+          audioTracks = dest.stream.getAudioTracks();
+        } else if (mic) { audioTracks = mic.getAudioTracks(); }
+        else { audioTracks = dispAudio; }
+
+        const stream = new MediaStream([videoTrack, ...audioTracks]);
+        const mime = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
+          .find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "video/webm";
+        chunks = [];
+        recorder = new MediaRecorder(stream, { mimeType: mime });
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        recorder.onstop = finish;
+        recorder.start();
+        recording = true;
+        studio.classList.add("is-recording");
+        recLabel.textContent = "Stop";
+        if (lastURL) { URL.revokeObjectURL(lastURL); lastURL = null; }
+        dlLink.style.display = "none";
+        tStart = Date.now(); tick(); tTimer = setInterval(tick, 500);
+        // If the user ends sharing via Chrome's own bar, wrap up cleanly.
+        videoTrack.addEventListener("ended", stop);
+      }
+
+      function stop() {
+        if (recorder && recorder.state !== "inactive") recorder.stop();
+      }
+
+      function finish() {
+        recording = false;
+        studio.classList.remove("is-recording");
+        recLabel.textContent = "Record";
+        clearInterval(tTimer);
+        stopTracks.forEach((t) => { try { t.stop(); } catch (e) {} });
+        if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
+        const blob = new Blob(chunks, { type: "video/webm" });
+        lastURL = URL.createObjectURL(blob);
+        const stamp = fmt(Math.floor((Date.now() - tStart) / 1000));
+        dlLink.href = lastURL;
+        dlLink.textContent = "↓ Save video (" + stamp + ")";
+        dlLink.style.display = "";
+      }
+
+      recBtn.addEventListener("click", () => {
+        if (!window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          showToast("Screen recording isn't available in this browser");
+          return;
+        }
+        recording ? stop() : start();
+      });
     })();
 
   </script>
