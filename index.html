@@ -397,6 +397,22 @@
     .place-bid:disabled { opacity: 0.4; cursor: not-allowed; }
     .place-bid:not(:disabled):active { transform: scale(0.98); }
 
+    /* ===== Slide to bid ===== */
+    .slide-bid { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      padding: 0; -webkit-user-select: none; user-select: none; touch-action: pan-y; }
+    .slide-bid .slide-label { position: relative; z-index: 2; pointer-events: none; padding: 0 16px; text-align: center; }
+    .slide-bid:not(.is-static) .slide-label { padding-left: 52px; }
+    .slide-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 48px; z-index: 1;
+      background: rgba(255,255,255,0.16); transition: width 180ms ease; }
+    .slide-knob { position: absolute; left: 4px; top: 4px; bottom: 4px; width: 42px; z-index: 3; border-radius: 2px;
+      background: #fff; color: #111; display: flex; align-items: center; justify-content: center; cursor: grab;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.28); transition: transform 200ms cubic-bezier(0.22,1,0.36,1); touch-action: none; }
+    .slide-knob:active { cursor: grabbing; }
+    .slide-bid.sliding .slide-knob, .slide-bid.sliding .slide-fill { transition: none; }
+    /* Static (non-slide) states hide the handle and centre the label. */
+    .slide-bid.is-static .slide-knob, .slide-bid.is-static .slide-fill { display: none; }
+    .slide-bid.is-static .slide-label { padding-left: 16px; }
+
     /* Lot details row */
     .lot-details { display: flex; align-items: stretch; gap: 12px; margin-top: 14px; cursor: pointer; }
     /* Lot card now leads the bid card — drop its top margin, push the bid
@@ -476,8 +492,6 @@
       background: #46ea77; flex: none;
     }
 
-    /* Watch-only / unregistered users have no bidding toggle */
-    .phone.not-registered .toggle-block { visibility: hidden; }
 
     /* Leading-bid CTA (Figma 7580:64314 "Bid is with you (Flash)"):
        success-green, informational rather than actionable, flashes once
@@ -936,13 +950,9 @@
             <div class="current-label" id="currentLabel">Opening bid</div>
             <div class="current-amount" id="currentAmount">$800,000</div>
           </div>
-          <div class="toggle-block">
-            <button class="switch is-on" id="biddingToggle" aria-pressed="true" aria-label="Toggle on to bid"><span class="knob"></span></button>
-            <span class="toggle-caption" id="toggleCaption">Bidding on</span>
-          </div>
         </div>
 
-        <button class="place-bid" id="placeBid">Place bid $800,000</button>
+        <div class="place-bid slide-bid is-static" id="placeBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Place bid $800,000</span></div>
       </div>
     </div>
 
@@ -979,12 +989,8 @@
             <div class="current-label" id="sheetLabel">Opening bid</div>
             <div class="sheet-amount" id="sheetAmount">$800,000</div>
           </div>
-          <div class="toggle-block">
-            <button class="switch is-on" id="sheetBiddingToggle" aria-pressed="true" aria-label="Toggle on to bid"><span class="knob"></span></button>
-            <span class="toggle-caption" id="sheetToggleCaption">Bidding on</span>
-          </div>
         </div>
-        <button class="place-bid" id="sheetPlaceBid">Place bid $800,000</button>
+        <div class="place-bid slide-bid is-static" id="sheetPlaceBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Place bid $800,000</span></div>
       </div>
     </div>
 
@@ -1028,12 +1034,8 @@
             <div class="current-label" id="lfLabel">Opening bid</div>
             <div class="sheet-amount" id="lfAmount">$800,000</div>
           </div>
-          <div class="toggle-block">
-            <button class="switch is-on" id="lfToggle" aria-pressed="true" aria-label="Toggle on to bid"><span class="knob"></span></button>
-            <span class="toggle-caption" id="lfToggleCap">Bidding on</span>
-          </div>
         </div>
-        <button class="place-bid" id="lfPlaceBid">Place bid $800,000</button>
+        <div class="place-bid slide-bid is-static" id="lfPlaceBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Place bid $800,000</span></div>
       </div>
     </div>
 
@@ -1228,8 +1230,7 @@
     const history      = document.getElementById("bidHistory");
     const currentAmt   = document.getElementById("currentAmount");
     const placeBid     = document.getElementById("placeBid");
-    const toggle       = document.getElementById("biddingToggle");
-    const toggleCap    = document.getElementById("toggleCaption");
+    const CTAS = ["placeBid","sheetPlaceBid","lfPlaceBid"].map((id) => document.getElementById(id));
     const streamToggle = document.getElementById("streamToggle");
     const streamLabel  = document.getElementById("streamToggleLabel");
 
@@ -1396,27 +1397,8 @@
     function mirrorSheet() {
       document.getElementById("sheetLabel").textContent = currentLabel.textContent;
       document.getElementById("sheetAmount").textContent = currentAmt.textContent;
-      const sp = document.getElementById("sheetPlaceBid");
-      sp.textContent = placeBid.textContent;
-      sp.disabled = placeBid.disabled;
-      sp.className = placeBid.className;
-      const on = toggle.classList.contains("is-on");
-      const st = document.getElementById("sheetBiddingToggle");
-      st.classList.toggle("is-on", on);
-      st.setAttribute("aria-pressed", String(on));
-      document.getElementById("sheetToggleCaption").textContent = toggleCap.textContent;
-
-      // Keep the full-screen Lot view in sync with the same live state.
       document.getElementById("lfLabel").textContent = currentLabel.textContent;
       document.getElementById("lfAmount").textContent = currentAmt.textContent;
-      const lfp = document.getElementById("lfPlaceBid");
-      lfp.textContent = placeBid.textContent;
-      lfp.disabled = placeBid.disabled;
-      lfp.className = placeBid.className;
-      const lft = document.getElementById("lfToggle");
-      lft.classList.toggle("is-on", on);
-      lft.setAttribute("aria-pressed", String(on));
-      document.getElementById("lfToggleCap").textContent = toggleCap.textContent;
     }
 
     function setSaleState(state) {
@@ -1430,13 +1412,7 @@
         renderHistory();
         currentLabel.textContent = "Begins";
         currentAmt.textContent = "5pm BST";
-        toggle.classList.remove("is-on");
-        toggle.setAttribute("aria-pressed", "false");
-        placeBid.textContent = "Bidding disabled";
-        placeBid.disabled = true;
-        placeBid.classList.add("is-disabled-state");
-        placeBid.classList.remove("is-with-you", "is-won");
-        toggleCap.textContent = "Toggle on to bid";
+        paintCta("is-disabled-state", "Bidding opens at the sale", false);
         applyUserCta(); // login/register prompts apply pre-sale too
         renderLot(LOTS.holding);
         closeSheet(); // keep the pre-sale holding screen clear of the split-view card
@@ -1514,7 +1490,6 @@
     function addBid(src) {
       if (saleState !== "live" || lotState === "sold") return;
       if (src === "Mine" && userState !== "registered") return; // can't bid without a paddle
-      if (src === "Mine" && !toggle.classList.contains("is-on")) return; // bidding requires the toggle, which requires a started sale
       const wasLeading = bids.length > 0 && bids[bids.length - 1].src === "Mine";
       current = nextBid();
       bids.push({ src, amt: current });
@@ -1628,49 +1603,33 @@
     // sold → "You won the lot" / "Sold" (7580:63899); not registered → login/
     // register prompt; leading bid → green "The bid is with you" (7580:64314);
     // toggle off → gray "Bidding disabled" (7580:63428); else "Place bid $X".
+    function paintCta(cls, label, biddable) {
+      CTAS.forEach((el) => {
+        el.className = "place-bid slide-bid" + (cls ? " " + cls : "") + (biddable ? "" : " is-static");
+        el.querySelector(".slide-label").textContent = label;
+        if (el._resetSlide) el._resetSlide();
+      });
+    }
     function syncBidding() {
-      const on = toggle.classList.contains("is-on");
       const leading = bids.length > 0 && bids[bids.length - 1].src === "Mine";
-      toggle.setAttribute("aria-pressed", String(on));
-      toggleCap.textContent = on ? "Bidding on" : "Toggle on to bid";
       if (lotState === "sold") {
         const won = leading && userState === "registered";
-        placeBid.classList.remove("is-with-you", "is-outbid");
-        placeBid.classList.add("is-disabled-state");
-        placeBid.classList.toggle("is-won", won);
-        placeBid.disabled = true;
-        placeBid.textContent = won ? "You won the lot" : "Sold";
-        mirrorSheet();
-        return;
+        paintCta(won ? "is-won" : "is-disabled-state", won ? "You won the lot" : "Sold", false);
+        mirrorSheet(); return;
       }
-      placeBid.classList.remove("is-won");
-      if (applyUserCta()) { mirrorSheet(); return; }
-      if (outbid && on && userState === "registered") {
-        placeBid.classList.remove("is-with-you", "is-disabled-state");
-        placeBid.classList.add("is-outbid");
-        placeBid.disabled = true;     // brief 1s notice; reverts to "Place bid" after
-        placeBid.textContent = "You were outbid";
-        mirrorSheet();
-        return;
+      if (userState !== "registered") {
+        phone.classList.add("not-registered");
+        paintCta("", "Register to bid", false);
+        mirrorSheet(); return;
       }
-      placeBid.classList.remove("is-outbid");
-      placeBid.classList.toggle("is-with-you", leading);
-      placeBid.classList.toggle("is-disabled-state", !leading && !on);
-      placeBid.disabled = leading || !on; // can't bid against yourself
-      placeBid.textContent = leading ? "The bid is with you"
-        : on ? "Place bid " + fmt(nextBid())
-        : "Bidding disabled";
+      phone.classList.remove("not-registered");
+      if (outbid) { paintCta("is-outbid", "You were outbid", false); mirrorSheet(); return; }
+      if (leading) { paintCta("is-with-you", "The bid is with you", false); mirrorSheet(); return; }
+      paintCta("", "Slide to bid " + fmt(nextBid()), true);
       mirrorSheet();
     }
 
     // --- wiring ---
-    function toggleBidding() {
-      if (saleState === "holding") return; // bidding can't be enabled pre-sale
-      if (userState !== "registered") return; // no paddle, no toggle
-      toggle.classList.toggle("is-on"); syncBidding();
-    }
-    toggle.addEventListener("click", toggleBidding);
-    document.getElementById("sheetBiddingToggle").addEventListener("click", toggleBidding);
     streamToggle.addEventListener("click", () => setExpanded(!phone.classList.contains("is-expanded")));
     // The CTA bids for registered users; otherwise it routes to the account
     // sheet to log in / register.
@@ -1678,7 +1637,33 @@
       if (userState !== "registered") { openAccount(); return; }
       addBid("Mine");
     }
-    placeBid.addEventListener("click", onCtaClick);
+    // Slide-to-bid: drag the handle to the end to place the bid.
+    function initSlideBid(el) {
+      const knob = el.querySelector(".slide-knob");
+      const fill = el.querySelector(".slide-fill");
+      let dragging = false, startX = 0, x = 0, maxX = 0;
+      const setX = (v) => { x = Math.max(0, Math.min(maxX, v)); knob.style.transform = "translateX(" + x + "px)"; fill.style.width = (x + knob.offsetWidth) + "px"; };
+      const reset = () => { el.classList.remove("sliding"); setX(0); };
+      el._resetSlide = reset;
+      knob.addEventListener("pointerdown", (e) => {
+        if (el.classList.contains("is-static")) return;
+        dragging = true; el.classList.add("sliding");
+        maxX = el.clientWidth - knob.offsetWidth - 8;
+        startX = e.clientX - x;
+        try { knob.setPointerCapture(e.pointerId); } catch (err) {}
+        e.preventDefault();
+      });
+      window.addEventListener("pointermove", (e) => { if (dragging) setX(e.clientX - startX); });
+      window.addEventListener("pointerup", () => {
+        if (!dragging) return; dragging = false; el.classList.remove("sliding");
+        if (x >= maxX * 0.72) { setX(maxX); onCtaClick(); setTimeout(reset, 160); } else setX(0);
+      });
+      el.addEventListener("keydown", (e) => {
+        if ((e.key === "Enter" || e.key === " ") && !el.classList.contains("is-static")) { e.preventDefault(); onCtaClick(); }
+      });
+      el.addEventListener("click", () => { if (el.classList.contains("is-static") && userState !== "registered") openAccount(); });
+    }
+    CTAS.forEach(initSlideBid);
 
     document.querySelectorAll("[data-bid]").forEach((b) =>
       b.addEventListener("click", () => addBid(b.dataset.bid)));
@@ -1809,8 +1794,6 @@
     // Split-view chevron collapses back to the floating bid card
     document.getElementById("splitClose").addEventListener("click", () => setCardStyle("floating"));
     // Bidding can also be driven from the full-screen lot view
-    document.getElementById("lfToggle").addEventListener("click", toggleBidding);
-    document.getElementById("lfPlaceBid").addEventListener("click", onCtaClick);
 
     // ---- Account sheet (Figma 7580:62351) + user states ----
     const accountOverlay = document.getElementById("accountOverlay");
@@ -2026,7 +2009,7 @@
     function resetLots() {
       ALL_LOTS.forEach((l, i) => { l.sold = LOT_DEFAULTS[i].sold; l.live = LOT_DEFAULTS[i].live; l.amount = LOT_DEFAULTS[i].amount; });
     }
-    function enableBidding() { toggle.classList.add("is-on"); syncBidding(); }
+    function enableBidding() { syncBidding(); }
     function hammerLot() { document.querySelector('[data-action="hammer"]').click(); }
     function selectPill(label) {
       document.querySelectorAll(".al-pill").forEach((x) => x.classList.toggle("is-on", x.textContent.trim() === label));
