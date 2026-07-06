@@ -208,6 +208,8 @@
       box-shadow: none;
     }
     /* Swap the portrait crop for the 16:9 landscape crop */
+    /* Auto-capture: centre the landscape phone vertically for the rotate moment. */
+    body.autocap .phone.landscape { margin-top: 300px; }
     .phone.landscape .video { display: none; }
     .phone.landscape .video-ls { display: block; object-position: center center; }
     /* Strip the portrait chrome — leave the stream plus minimal controls.
@@ -2207,6 +2209,7 @@
     // live screen-recording. Real sheet transitions + a natural slide-to-bid. ----
     (function () {
       if (new URLSearchParams(location.search).get("auto") !== "1") return;
+      document.body.classList.add("autocap");
       const panel = document.querySelector(".panel"); if (panel) panel.style.display = "none";
       ["studio", "annoCanvas"].forEach((id) => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
 
@@ -2230,20 +2233,27 @@
       setUserState("registered"); setSaleState("holding");
       const seq = [
         [1500, () => setSaleState("live")],            // the sale goes live
-        [4200, () => openAccount()],                    // glance at the account
-        [6800, () => closeAccount()],
-        [8200, () => openSplitView()],                  // tap the card → split view
-        [11200, () => setCardStyle("floating")],        // chevron back to floating
-        [12600, () => openLotFull()],                   // full lot view
-        [16000, () => closeLotFull()],                  // back to the live view
-        [17400, () => addBid("In room")],               // bids begin
-        [18700, () => addBid("Advance")],
-        [20000, () => addBid("In room")],
-        [21400, () => animateSlide()],                  // natural slide-to-bid → with you
-        [24200, () => hammerLot()],                     // hammer → won
-        [26400, () => { setMainTab("All lots"); selectPill("Results"); }],
-        [29400, () => selectPill("Favorites")],
-        [32600, () => { window.__autoDone = true; }],
+        [4000, () => openAccount()],                    // glance at the account
+        [6300, () => closeAccount()],
+        [7600, () => openSplitView()],                  // tap the card → split view
+        [10200, () => setCardStyle("floating")],        // chevron back to floating
+        [11400, () => openLotFull()],                   // full lot view
+        [14400, () => closeLotFull()],                  // back to the live view
+        [15700, () => setLandscape(true)],              // rotate to full-screen landscape watch
+        [19200, () => setLandscape(false)],             // rotate back to portrait
+        [20500, () => addBid("In room")],               // bids begin arriving
+        [21600, () => addBid("Advance")],
+        [22700, () => addBid("In room")],
+        [23800, () => addBid("Advance")],
+        [25000, () => setExpanded(true)],               // expand the bid stream
+        [27200, () => setExpanded(false)],              // collapse it again
+        [28400, () => animateSlide()],                  // natural slide-to-bid → with you
+        [31200, () => hammerLot()],                     // hammer → won
+        [33000, () => { setMainTab("All lots"); selectPill("Results"); }], // results
+        [37800, () => selectPill("Favorites")],         // favorites (results held ~4.8s)
+        [40800, () => setMainTab("Live")],              // back to the active sale
+        [42200, () => advanceLot()],                    // advance to the next lot in order
+        [44600, () => { window.__autoDone = true; }],
       ];
       seq.forEach(([t, fn]) => setTimeout(() => { try { fn(); } catch (e) {} }, t));
     })();
