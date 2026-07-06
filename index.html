@@ -2149,10 +2149,28 @@
       if (!d) return;
       const panel = document.querySelector(".panel");
       if (panel) panel.style.display = "none";
+      ["studio", "annoCanvas"].forEach((id) => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
       if (d === "split") { runScenario("registered"); openSplitView(); }
       else if (d === "account") { runScenario("registered"); openAccount(); }
       else if (d === "cwin") { runScenario("registered"); enableBidding(); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); }
       else if (d === "close") { runScenario("registered"); enableBidding(); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); }
+      else if (d === "holding") { const b = document.querySelector('[data-action="holding"]'); if (b) b.click(); }
+      else if (d === "slide") {
+        runScenario("registered");
+        const pp = Math.max(0, Math.min(100, parseFloat(p.get("p")) || 0));
+        if (pp >= 100) { addBid("Mine"); }
+        else {
+          const el = document.getElementById("placeBid");
+          const knob = el.querySelector(".slide-knob"), fill = el.querySelector(".slide-fill");
+          requestAnimationFrame(() => {
+            const maxX = el.clientWidth - knob.offsetWidth - 8;
+            const x = maxX * pp / 100;
+            knob.style.transition = "none";
+            knob.style.transform = "translateX(" + x + "px)";
+            fill.style.width = (x + knob.offsetWidth) + "px";
+          });
+        }
+      }
       else if (d !== "none") runScenario(d);
       if (p.get("mute") === "1") { soundOn = false; syncMuteIcon(); }
       const t = parseFloat(p.get("t"));
