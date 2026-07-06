@@ -399,11 +399,12 @@
 
     /* ===== Slide to bid ===== */
     .slide-bid { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
-      padding: 0; -webkit-user-select: none; user-select: none; touch-action: pan-y; }
+      padding: 0; -webkit-user-select: none; user-select: none; touch-action: pan-y;
+      transition: background-color 260ms ease; }
     .slide-bid .slide-label { position: relative; z-index: 2; pointer-events: none; padding: 0 16px; text-align: center; }
     .slide-bid:not(.is-static) .slide-label { padding-left: 52px; }
     .slide-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 48px; z-index: 1;
-      background: rgba(255,255,255,0.16); transition: width 180ms ease; }
+      background: #00cc39; transition: width 200ms cubic-bezier(0.22,1,0.36,1); }
     .slide-knob { position: absolute; left: 4px; top: 4px; bottom: 4px; width: 42px; z-index: 3; border-radius: 2px;
       background: #fff; color: #111; display: flex; align-items: center; justify-content: center; cursor: grab;
       box-shadow: 0 1px 4px rgba(0,0,0,0.28); transition: transform 200ms cubic-bezier(0.22,1,0.36,1); touch-action: none; }
@@ -1656,7 +1657,12 @@
       window.addEventListener("pointermove", (e) => { if (dragging) setX(e.clientX - startX); });
       window.addEventListener("pointerup", () => {
         if (!dragging) return; dragging = false; el.classList.remove("sliding");
-        if (x >= maxX * 0.72) { setX(maxX); onCtaClick(); setTimeout(reset, 160); } else setX(0);
+        if (x >= maxX * 0.7) {
+          // Snap to the end and let the green fill sweep across, then commit — the
+          // solid-green "bid is with you" state morphs in seamlessly from the fill.
+          setX(maxX); fill.style.width = "100%";
+          setTimeout(() => { onCtaClick(); reset(); }, 220);
+        } else setX(0);
       });
       el.addEventListener("keydown", (e) => {
         if ((e.key === "Enter" || e.key === " ") && !el.classList.contains("is-static")) { e.preventDefault(); onCtaClick(); }
