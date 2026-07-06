@@ -405,7 +405,7 @@
       transition: background-color 260ms ease; }
     .slide-bid .slide-label { position: relative; z-index: 2; pointer-events: none; padding: 0 16px; text-align: center; }
     .slide-bid:not(.is-static) .slide-label { padding-left: 52px; }
-    .slide-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 48px; z-index: 1;
+    .slide-fill { position: absolute; left: 4px; top: 0; bottom: 0; width: 0; z-index: 1;
       background: #00cc39; transition: width 200ms cubic-bezier(0.22,1,0.36,1); }
     .slide-knob { position: absolute; left: 4px; top: 4px; bottom: 4px; width: 42px; z-index: 3; border-radius: 2px;
       background: #fff; color: #111; display: flex; align-items: center; justify-content: center; cursor: grab;
@@ -1645,7 +1645,7 @@
       const knob = el.querySelector(".slide-knob");
       const fill = el.querySelector(".slide-fill");
       let dragging = false, startX = 0, x = 0, maxX = 0;
-      const setX = (v) => { x = Math.max(0, Math.min(maxX, v)); knob.style.transform = "translateX(" + x + "px)"; fill.style.width = (x + knob.offsetWidth) + "px"; };
+      const setX = (v) => { x = Math.max(0, Math.min(maxX, v)); knob.style.transform = "translateX(" + x + "px)"; fill.style.width = x + "px"; };
       const reset = () => { el.classList.remove("sliding"); setX(0); };
       el._resetSlide = reset;
       knob.addEventListener("pointerdown", (e) => {
@@ -2179,7 +2179,7 @@
             const x = maxX * pp / 100;
             knob.style.transition = "none";
             knob.style.transform = "translateX(" + x + "px)";
-            fill.style.width = (x + knob.offsetWidth) + "px";
+            fill.style.width = x + "px";
           });
         }
       }
@@ -2195,7 +2195,7 @@
             const x = maxX * pp / 100;
             knob.style.transition = "none";
             knob.style.transform = "translateX(" + x + "px)";
-            fill.style.width = (x + knob.offsetWidth) + "px";
+            fill.style.width = x + "px";
           });
         }
       }
@@ -2223,7 +2223,7 @@
         const ease = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
         (function step(now) {
           const p = Math.min(1, (now - t0) / dur), x = maxX * ease(p);
-          knob.style.transform = "translateX(" + x + "px)"; fill.style.width = (x + knob.offsetWidth) + "px";
+          knob.style.transform = "translateX(" + x + "px)"; fill.style.width = x + "px";
           if (p < 1) requestAnimationFrame(step);
           else { fill.style.width = "100%"; setTimeout(onCtaClick, 150); }
         })(performance.now());
