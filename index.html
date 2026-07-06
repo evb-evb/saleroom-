@@ -2161,6 +2161,26 @@
       else if (d === "cwin") { runScenario("registered"); enableBidding(); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); }
       else if (d === "close") { runScenario("registered"); enableBidding(); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); }
       else if (d === "holding") { const b = document.querySelector('[data-action="holding"]'); if (b) b.click(); }
+      else if (d === "bid") {
+        // One consistent bidding context for the competing / slide / won beats,
+        // so the amount stays aligned across them.
+        runScenario("registered");
+        addBid("In room"); addBid("Advance"); addBid("In room");
+        const pp = Math.max(0, Math.min(100, parseFloat(p.get("p")) || 0));
+        if (p.get("hammer") === "1") { addBid("Mine"); hammerLot(); }
+        else if (pp >= 100) { addBid("Mine"); }
+        else {
+          const el = document.getElementById("placeBid");
+          const knob = el.querySelector(".slide-knob"), fill = el.querySelector(".slide-fill");
+          requestAnimationFrame(() => {
+            const maxX = el.clientWidth - knob.offsetWidth - 8;
+            const x = maxX * pp / 100;
+            knob.style.transition = "none";
+            knob.style.transform = "translateX(" + x + "px)";
+            fill.style.width = (x + knob.offsetWidth) + "px";
+          });
+        }
+      }
       else if (d === "slide") {
         runScenario("registered");
         const pp = Math.max(0, Math.min(100, parseFloat(p.get("p")) || 0));
