@@ -1007,7 +1007,7 @@
     <div class="lot-full" id="lotFull" aria-hidden="true">
       <div class="lf-top">
         <button class="lf-chevron" id="lotFullClose" aria-label="Close lot view">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
         <div class="wordmark wordmark-dark"><svg class="ph-logo" viewBox="0 0 112 12" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Phillips"><path d="M47.0534 11.765H45.1699V0.235281H54.722V2.05058H47.0536V11.765H47.0534ZM35.4667 0.235281H37.3502V11.765H35.4667V0.235281ZM18.263 11.765H16.4131V0.235281H18.2462V4.40357H25.7968V0.235281H27.6468V11.765H25.7968V6.16823H18.2462L18.263 11.765ZM75.4067 0.235281H77.2901V11.765H75.4067V0.235281ZM101.485 3.08462L100.849 1.38545C102.329 0.544943 104.853 0 106.635 0C109.932 0 112 1.29404 112 3.56299C112 6.23537 109.461 6.70601 106.703 6.97482C104.937 7.14297 103.087 7.27725 103.087 8.55471C103.087 9.54633 103.978 10.1849 106.349 10.1849C107.762 10.1849 109.393 9.86558 110.755 9.29396L111.344 11.0084C109.83 11.6637 107.998 12 106.383 12C103.053 12 101.17 10.689 101.17 8.55458C101.17 5.86543 103.743 5.39468 106.467 5.14283C108.233 4.97482 110.066 4.82344 110.066 3.56288C110.066 2.53759 109.141 1.81491 106.652 1.81491C105.122 1.81523 103.008 2.27271 101.485 3.08462ZM62.1718 11.765H60.2882V0.235281H69.8403V2.05058H62.1718V11.765ZM91.5675 11.765H85.1267V0.235281H87.0102V4.05052H91.5675C94.2582 4.05052 95.8054 5.66413 95.8054 7.91614C95.8054 10.1514 94.2919 11.765 91.5675 11.765ZM91.349 5.86576H87.0104V9.94981H91.349C92.9803 9.94981 93.8884 9.19346 93.8884 7.91614C93.8884 6.63887 93.0138 5.86576 91.349 5.86576ZM6.44082 11.765H0V0.235281H1.88354V4.05052H6.44093C9.13164 4.05052 10.6787 5.66413 10.6787 7.91614C10.6787 10.1514 9.16515 11.765 6.44082 11.765ZM6.2223 5.86576H1.88354V9.94981H6.2223C7.85344 9.94981 8.76148 9.19346 8.76148 7.91614C8.76148 6.63887 7.88706 5.86576 6.2223 5.86576Z" fill="currentColor"/></svg></div>
         <div class="lf-tabs">
@@ -1783,7 +1783,7 @@
       lotFull.setAttribute("aria-hidden", "true");
       setMainTab("Live");
     }
-    document.getElementById("lotFullClose").addEventListener("click", closeLotFull);
+    document.getElementById("lotFullClose").addEventListener("click", () => { if (pgMode) { slidePager(0); return; } closeLotFull(); });
     document.getElementById("lotFullAccount").addEventListener("click", openAccount);
     lotFull.querySelectorAll(".lf-tab").forEach((t) =>
       t.addEventListener("click", () => {
@@ -2527,6 +2527,13 @@
         }
         recording ? stop() : start();
       });
+    })();
+
+    // Shareable Option A link: ?tabnav=slide opens straight into the slide navigation.
+    (function () {
+      if (new URLSearchParams(location.search).get("tabnav") !== "slide") return;
+      runScenario("registered");
+      const sb = document.querySelector('[data-tabnav="slide"]'); if (sb) sb.click();
     })();
 
   </script>
