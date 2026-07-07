@@ -99,8 +99,14 @@ h1.title{font-family:"DD",serif;font-weight:400;font-size:clamp(30px,5vw,46px);l
   justify-content:center;cursor:pointer;color:var(--ink)}
 .covclose svg{width:19px;height:19px}
 .covttl{font-family:"DD";font-size:15px}
+.push{position:absolute;inset:0;z-index:30;background:var(--paper);transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.8,.3,1);overflow-y:auto;overflow-x:hidden}
+.push.open{transform:translateX(0)}
+.push::-webkit-scrollbar{display:none}
+.pushhead{position:sticky;top:0;display:flex;align-items:center;gap:10px;padding:13px 14px;background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:2}
+.pushback{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.pushback svg{width:19px;height:19px}
 /* engineering notes */
-.notes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:44px}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px}
 .note{background:var(--lav2);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
 .note.active{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
 .note h3{font-family:"DD";font-weight:400;font-size:18px;margin:0 0 4px;display:flex;align-items:center;gap:9px}
@@ -111,17 +117,19 @@ h1.title{font-family:"DD",serif;font-weight:400;font-size:clamp(30px,5vw,46px);l
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;letter-spacing:.03em;color:var(--muted);
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media(max-width:620px){.notes{grid-template-columns:1fr}.seg{width:100%}.seg button{flex:1;padding:11px 8px}}
-@media(prefers-reduced-motion:reduce){.track,.ind,.cov{transition:none}}
+@media(max-width:720px){.notes{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.track,.ind,.cov,.push{transition:none}}
 </style>
 
 <div class="pg"><div class="inner">
   <p class="eyebrow">Phillips &middot; Live Saleroom V1.1</p>
   <h1 class="title">Moving between Live, Lot view &amp; All lots</h1>
-  <p class="lede">Two ways the three tabs can relate to each other. Try each on the phone below &mdash; tap the tabs, drag across the screen &mdash; then pick the one to hand to engineering.</p>
+  <p class="lede">Three ways the three tabs can relate to each other. Try each on the phone below &mdash; tap the tabs, drag across the screen &mdash; then pick the one to hand to engineering.</p>
 
   <div class="seg" role="tablist" aria-label="Navigation options">
-    <button data-mode="swipe" class="on">Option A &middot; Swipe between tabs</button>
-    <button data-mode="cover">Option B &middot; Full-screen covers</button>
+    <button data-mode="swipe" class="on">A &middot; Swipe</button>
+    <button data-mode="cover">B &middot; Cover pages</button>
+    <button data-mode="push">C &middot; Push in</button>
   </div>
   <div class="cap"><span class="k" id="capK"></span><span class="d" id="capD"></span></div>
 
@@ -136,8 +144,10 @@ h1.title{font-family:"DD",serif;font-weight:400;font-size:clamp(30px,5vw,46px);l
 (function(){
   const screen=document.getElementById('screen'), capK=document.getElementById('capK'), capD=document.getElementById('capD'), notesEl=document.getElementById('notes');
   const CAP={swipe:["Swipe.","Tabs stay put; the content slides left and right. Tap a tab or drag across the screen."],
-             cover:["Covers.","Each section rises as a full-screen page over the live view. Tap a tab to open it, the chevron to dismiss."]};
+             cover:["Covers.","Each section rises as a full-screen page over the live view. Tap a tab to open it, the chevron to dismiss."],
+             push:["Push.","Each section slides in from the right as a new screen, like stepping forward. The back arrow steps you back to live."]};
   const chevron='<svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const backArrow='<svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const statusbar='<div class="sb"><span>9:41</span><span class="r"><i></i><i style="width:12px"></i><span class="bat"></span></span></div>';
   function topHTML(a){return '<div class="top">'+statusbar+'<div class="wm">PHILLIPS</div>'+
     '<div class="tabs"><button class="tab'+(a===0?' on':'')+'" data-t="0">Live</button>'+
@@ -201,7 +211,20 @@ h1.title{font-family:"DD",serif;font-weight:400;font-size:clamp(30px,5vw,46px);l
     tabs[0].onclick=function(){set(null);};tabs[1].onclick=function(){set('lot');};tabs[2].onclick=function(){set('all');};
     [].slice.call(screen.querySelectorAll('.covclose')).forEach(function(b){b.onclick=function(){set(null);};});
   }
-  function render(){mode==='swipe'?buildSwipe():buildCover();}
+  function buildPush(){
+    screen.innerHTML=topHTML(0)+'<div class="body"><section class="pane dark">'+live+'</section></div>'+
+      '<div class="push" id="pLot"><div class="pushhead"><button class="pushback" aria-label="Back">'+backArrow+'</button><span class="covttl">Lot view</span></div>'+lot+'</div>'+
+      '<div class="push" id="pAll"><div class="pushhead"><button class="pushback" aria-label="Back">'+backArrow+'</button><span class="covttl">All lots</span></div>'+all+'</div>';
+    var tabs=[].slice.call(screen.querySelectorAll('.tab')), ind=screen.querySelector('.ind'),
+      pLot=screen.querySelector('#pLot'), pAll=screen.querySelector('#pAll');
+    function set(o){pLot.classList.toggle('open',o==='lot');pAll.classList.toggle('open',o==='all');
+      tabs.forEach(function(t,k){t.classList.toggle('on',(o===null&&k===0)||(o==='lot'&&k===1)||(o==='all'&&k===2));});
+      ind.style.transform='translateX('+((o==='lot'?1:o==='all'?2:0)*100)+'%)';}
+    set(null);
+    tabs[0].onclick=function(){set(null);};tabs[1].onclick=function(){set('lot');};tabs[2].onclick=function(){set('all');};
+    [].slice.call(screen.querySelectorAll('.pushback')).forEach(function(b){b.onclick=function(){set(null);};});
+  }
+  function render(){mode==='swipe'?buildSwipe():mode==='cover'?buildCover():buildPush();}
   function setMode(m){mode=m;
     [].slice.call(document.querySelectorAll('.seg button')).forEach(function(b){b.classList.toggle('on',b.dataset.mode===m);});
     capK.textContent=CAP[m][0];capD.textContent=CAP[m][1];
@@ -215,7 +238,11 @@ h1.title{font-family:"DD",serif;font-weight:400;font-size:clamp(30px,5vw,46px);l
     '<div class="note" data-mode="cover"><h3>Full-screen covers</h3><span class="tag">Option B</span>'+
     '<p>Live is home. Lot view and All lots present as full-screen pages over it, dismissed with the chevron. Each section is its own destination.</p>'+
     '<dl><dt>Pattern</dt><dd>Modal / route presented full-screen</dd>'+
-    '<dt>Gesture</dt><dd>Tap to open, chevron (or swipe-down) to dismiss</dd><dt>Feels like</dt><dd>Distinct places you visit and leave</dd></dl></div>';
+    '<dt>Gesture</dt><dd>Tap to open, chevron (or swipe-down) to dismiss</dd><dt>Feels like</dt><dd>Distinct places you visit and leave</dd></dl></div>'+
+    '<div class="note" data-mode="push"><h3>Push in</h3><span class="tag">Option C</span>'+
+    '<p>Each section slides in from the right as a new screen and pushes onto a stack. A back arrow returns to live &mdash; the familiar iOS navigation model.</p>'+
+    '<dl><dt>Pattern</dt><dd>Navigation push (stack / route with slide-in)</dd>'+
+    '<dt>Gesture</dt><dd>Tap to push, back arrow (or edge-swipe) to pop</dd><dt>Feels like</dt><dd>Stepping forward and back</dd></dl></div>';
   [].slice.call(document.querySelectorAll('.seg button')).forEach(function(b){b.onclick=function(){setMode(b.dataset.mode);};});
   setMode('swipe');
 })();
