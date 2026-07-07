@@ -811,6 +811,12 @@
     .phone.view-all-lots .all-lots { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 240ms ease, visibility 0s; }
     .phone.view-all-lots .status-bar { color: #000; z-index: 8; }
     .phone.view-all-lots .home-indicator { background: #111; z-index: 11; }
+    /* ---- Option A: Live / Lot view / All lots paged horizontally, slide on tap ---- */
+    .pg-track { position: absolute; inset: 0; display: flex; width: 300%; z-index: 1;
+      transition: transform 380ms cubic-bezier(0.4, 0, 0.2, 1); }
+    .pg-page { position: relative; width: 33.3333%; height: 100%; overflow: hidden; }
+    .phone.pg-mode .lot-full, .phone.pg-mode .all-lots {
+      opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; transform: none !important; }
     /* Masthead matches the live view exactly: wordmark at top:56, tabs 14px
        below, back arrow + account pinned to the phone edges. */
     .al-top { position: relative; padding: 56px 16px 0; flex: none; }
@@ -1124,6 +1130,14 @@
 
     <button class="panel-toggle" id="panelToggle" aria-expanded="true">Manual controls <span class="chev">▸</span></button>
     <div class="panel-advanced" id="panelAdvanced">
+
+    <div class="panel-group">
+      <p>Tab navigation</p>
+      <div class="panel-row">
+        <button data-tabnav="default" class="is-selected">Default</button>
+        <button data-tabnav="slide">Slide (Option A)</button>
+      </div>
+    </div>
 
     <div class="panel-group">
       <p>User</p>
@@ -1774,6 +1788,7 @@
     lotFull.querySelectorAll(".lf-tab").forEach((t) =>
       t.addEventListener("click", () => {
         const k = t.dataset.lftab;
+        if (pgMode) { slidePager(k === "lot" ? 1 : k === "all" ? 2 : 0); return; }
         if (k === "lot") return;
         closeLotFull();
         if (k === "all") setMainTab("All lots");
@@ -1861,6 +1876,7 @@
 
     // Tabs: "Lot view" opens the sheet, "Live" returns to the live view
     function navTo(label) {
+      if (pgMode) { slidePager(label === "Lot view" ? 1 : label === "All lots" ? 2 : 0); return; }
       if (label === "Lot view") { openLotFull(); return; }
       if (phone.classList.contains("lotfull-open")) closeLotFull();
       setMainTab(label);
@@ -1868,6 +1884,38 @@
     }
     document.querySelectorAll(".tab").forEach((t) =>
       t.addEventListener("click", () => navTo(t.textContent.trim())));
+
+    // ---- Option A: slide between Live / Lot view / All lots on tap (no swipe) ----
+    // Toggleable from the panel. Reparents the three views into a horizontal track;
+    // tapping any tab slides the track. Default mode is untouched.
+    let pgMode = false, pgTrack = null, pgOrig = null, pgIndex = 0;
+    function slidePager(i) {
+      if (!pgTrack) return;
+      pgIndex = Math.max(0, Math.min(2, i));
+      pgTrack.style.transform = "translateX(" + (-pgIndex * 33.3333) + "%)";
+    }
+    function buildPager() {
+      if (pgMode) return;
+      pgOrig = [].slice.call(phone.children);
+      const mk = () => { const d = document.createElement("div"); d.className = "pg-page"; return d; };
+      const p0 = mk(), p1 = mk(), p2 = mk();
+      pgOrig.forEach((n) => { (n === lotFull ? p1 : n === allLots ? p2 : p0).appendChild(n); });
+      pgTrack = document.createElement("div"); pgTrack.className = "pg-track";
+      pgTrack.append(p0, p1, p2); phone.appendChild(pgTrack);
+      phone.classList.add("pg-mode"); pgMode = true; slidePager(0);
+    }
+    function destroyPager() {
+      if (!pgMode) return;
+      pgMode = false; phone.classList.remove("pg-mode");
+      pgOrig.forEach((n) => phone.appendChild(n));
+      pgTrack.remove(); pgTrack = null; pgOrig = null;
+    }
+    document.querySelectorAll("[data-tabnav]").forEach((b) =>
+      b.addEventListener("click", () => {
+        document.querySelectorAll("[data-tabnav]").forEach((x) => x.classList.remove("is-selected"));
+        b.classList.add("is-selected");
+        b.dataset.tabnav === "slide" ? buildPager() : destroyPager();
+      }));
 
     // Mute toggles between muted / unmuted speaker
     const muteBtn = document.querySelector(".vc-btn");
