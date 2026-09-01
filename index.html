@@ -746,6 +746,16 @@
       padding: 11px 18px; border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,.28);
       opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; }
     .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    /* Bid-placed toast — top of the phone (ticket L3-14468) */
+    .bid-toast { position: absolute; top: 92px; left: 50%; z-index: 9400;
+      transform: translateX(-50%) translateY(-10px);
+      background: rgba(17,17,17,0.94); color: #fff; font: 600 14px/1 -apple-system, system-ui, sans-serif;
+      padding: 10px 18px; border-radius: 999px; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+      opacity: 0; pointer-events: none; transition: opacity .22s ease, transform .22s ease; }
+    .bid-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .bid-toast .bt-tick { width: 16px; height: 16px; border-radius: 50%; background: #00cc39; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .bid-toast b { font-weight: 700; }
 
     /* ===================== Record & annotate studio ===================== */
     /* Full-viewport drawing surface. Pointer-transparent unless drawing is armed,
@@ -918,6 +928,9 @@
 
     <!-- Live indicator — only visible during landscape watch -->
     <span class="fs-live" aria-hidden="true"><span class="tab-dot"></span>Live</span>
+
+    <!-- Bid-placed toast (ticket L3-14468) -->
+    <div class="bid-toast" id="bidToast" role="status" aria-live="polite"></div>
 
     <!-- ===== Holding screen (pre-sale, Figma 7580:63634) ===== -->
     <div class="holding-screen" aria-hidden="true">
@@ -1525,6 +1538,7 @@
       currentAmt.textContent = fmt(current);
       currentAmt.classList.add("bump");
       setTimeout(() => currentAmt.classList.remove("bump"), 200);
+      if (src === "Mine") showBidToast(fmt(current)); // L3-14468: bid-placed confirmation
       syncBidding();
       syncPanel();
     }
@@ -1627,11 +1641,27 @@
         if (el._resetSlide) el._resetSlide();
       });
     }
+    // Bid-placed confirmation toast (ticket L3-14468) — replaces the CTA status change.
+    function showBidToast(amt) {
+      const t = document.getElementById("bidToast");
+      if (!t) return;
+      t.innerHTML = '<span class="bt-tick"><svg width="11" height="11" viewBox="0 0 12 12" fill="none">'
+        + '<path d="M2.5 6.4l2.4 2.4 4.6-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+        + 'Bid placed <b>' + amt + '</b>';
+      t.classList.add("show");
+      clearTimeout(t._t);
+      t._t = setTimeout(function () { t.classList.remove("show"); }, 2200);
+    }
+    // Ticket L3-14468: while the lot is open the CTA is always "Slide to bid" (never a
+    // bid status, never disabled). Winning/Outbid live in the bid stream (+ toast).
+    // On close the CTA shows the final result: Winning Bid / Outbid / Sold.
     function syncBidding() {
       const leading = bids.length > 0 && bids[bids.length - 1].src === "Mine";
       if (lotState === "sold") {
-        const won = leading && userState === "registered";
-        paintCta(won ? "is-won" : "is-disabled-state", won ? "You won the lot" : "Sold", false);
+        const iBid = bids.some((b) => b.src === "Mine");
+        if (leading && userState === "registered") paintCta("is-won", "Winning Bid", false);
+        else if (iBid && userState === "registered") paintCta("is-outbid", "Outbid", false);
+        else paintCta("is-disabled-state", "Sold", false);
         mirrorSheet(); return;
       }
       if (userState !== "registered") {
@@ -1640,8 +1670,6 @@
         mirrorSheet(); return;
       }
       phone.classList.remove("not-registered");
-      if (outbid) { paintCta("is-outbid", "You were outbid", false); mirrorSheet(); return; }
-      if (leading) { paintCta("is-with-you", "The bid is with you", false); mirrorSheet(); return; }
       paintCta("", "Slide to bid " + fmt(nextBid()), true);
       mirrorSheet();
     }
