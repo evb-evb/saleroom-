@@ -1140,6 +1140,9 @@
         <div class="scn-row"><button data-screen="account">Your account</button><button class="scn-copy" data-copy="account" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
         <div class="scn-row"><button data-screen="cwin">Competing bids — you win</button><button class="scn-copy" data-copy="cwin" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
         <div class="scn-row"><button data-screen="outbid">Competing bids — outbid</button><button class="scn-copy" data-copy="outbid" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-screen="slidetobid">Slide to bid — CTA (L3-14468)</button><button class="scn-copy" data-copy="slidetobid" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-screen="yourbid">Your bid — winning &amp; label</button><button class="scn-copy" data-copy="yourbid" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
+        <div class="scn-row"><button data-screen="bidagain">Outbid — bid again toast</button><button class="scn-copy" data-copy="bidagain" title="Copy link to this screen" aria-label="Copy link to this screen"></button></div>
       </div>
     </div>
 
@@ -2181,6 +2184,10 @@
       account: () => { runScenario("registered"); openAccount(); },
       cwin: () => { runScenario("registered"); addBid("In room"); addBid("Online"); addBid("Advance"); addBid("Mine"); hammerLot(); },
       outbid: () => { runScenario("registered"); addBid("Mine"); addBid("In room"); addBid("Advance"); addBid("Online"); hammerLot(); },
+      // New changes (2026-09) — individual shareable links
+      slidetobid: () => { runScenario("registered"); },                                   // L3-14468: CTA is "Slide to bid" the whole time
+      yourbid:    () => { runScenario("registered"); addBid("Mine"); },                    // "Your bid" label + stream when you are winning
+      bidagain:   () => { runScenario("registered"); addBid("Mine"); addBid("In room"); }, // "Outbid. Bid again" toast
     };
     function applyScreen(name) {
       if (EXTRA_SCREENS[name]) { EXTRA_SCREENS[name](); return true; }
