@@ -268,7 +268,7 @@
       animation: chipRise 320ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     /* Default layout shows the amount only — the source ("bid type") is hidden. */
-    .bid-row > .src-label, .bid-row > .you-label { display: none; }
+    .bid-row > .src-label { display: none; }  /* source labels are feed-dependent; "Your bid" always shows */
     /* Expanded stream ("Show more") always reveals the bid-type/source label,
        even in the centred layout where it's otherwise hidden. */
     .phone.is-expanded .bid-row { justify-content: space-between; }
@@ -756,6 +756,8 @@
     .bid-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .bid-toast .bt-tick { width: 16px; height: 16px; border-radius: 50%; background: #00cc39; display: inline-flex; align-items: center; justify-content: center; flex: none; }
     .bid-toast b { font-weight: 700; }
+    .bid-toast.is-outbid { background: rgba(234,4,4,0.96); }
+    .bid-toast .bt-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; flex: none; }
 
     /* ===================== Record & annotate studio ===================== */
     /* Full-viewport drawing surface. Pointer-transparent unless drawing is armed,
@@ -1188,6 +1190,7 @@
         <button data-action="fairWarning">Fair warning</button>
         <button data-action="hammer">Hammer (sold)</button>
         <button data-action="nextLot">Next lot</button>
+        <button data-action="outbidMe">Outbid me &rarr; bid again</button>
       </div>
     </div>
 
@@ -1302,7 +1305,7 @@
       const li = document.createElement("li");
       li.className = "chip";
       const st = bidStatus(src, isTop);
-      const label = feedAlign === "sourced" ? `<span class="src-label">${st.label}</span>` : "";
+      const label = (src === "Mine" || feedAlign === "sourced") ? `<span class="src-label">${st.label}</span>` : "";
       const dot = st.dot ? `<span class="${st.dot}"></span>` : "";
       li.innerHTML = `<span class="bid-amt">${fmt(amt)}</span>${label}${dot}`;
       return li;
@@ -1317,7 +1320,8 @@
       li.className = "bid-row";
       const st = bidStatus(src, isTop);
       const dot = st.dot ? `<span class="${st.dot}"></span>` : "";
-      li.innerHTML = `<span class="bid-amt">${fmt(amt)}</span><span class="src-label">${st.label}</span>${dot}`;
+      const labelClass = src === "Mine" ? "you-label" : "src-label";
+      li.innerHTML = `<span class="bid-amt">${fmt(amt)}</span><span class="${labelClass}">${st.label}</span>${dot}`;
       return li;
     }
 
@@ -1534,11 +1538,12 @@
         outbidTimer = setTimeout(() => { outbid = false; syncBidding(); }, 1000);
       }
       renderHistory();
-      currentLabel.textContent = "Current bid";
+      currentLabel.textContent = (src === "Mine") ? "Your bid" : "Current bid";
       currentAmt.textContent = fmt(current);
       currentAmt.classList.add("bump");
       setTimeout(() => currentAmt.classList.remove("bump"), 200);
-      if (src === "Mine") showBidToast(fmt(current)); // L3-14468: bid-placed confirmation
+      if (src === "Mine") showBidToast("placed", fmt(current));               // your bid confirmation
+      else if (wasLeading && userState === "registered") showBidToast("outbid"); // another bid overtook you
       syncBidding();
       syncPanel();
     }
@@ -1642,15 +1647,20 @@
       });
     }
     // Bid-placed confirmation toast (ticket L3-14468) — replaces the CTA status change.
-    function showBidToast(amt) {
+    function showBidToast(kind, amt) {
       const t = document.getElementById("bidToast");
       if (!t) return;
-      t.innerHTML = '<span class="bt-tick"><svg width="11" height="11" viewBox="0 0 12 12" fill="none">'
-        + '<path d="M2.5 6.4l2.4 2.4 4.6-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
-        + 'Bid placed <b>' + amt + '</b>';
-      t.classList.add("show");
+      if (kind === "outbid") {
+        t.className = "bid-toast is-outbid show";
+        t.innerHTML = '<span class="bt-dot"></span>Another bid was placed &mdash; <b>Bid again</b>';
+      } else {
+        t.className = "bid-toast show";
+        t.innerHTML = '<span class="bt-tick"><svg width="11" height="11" viewBox="0 0 12 12" fill="none">'
+          + '<path d="M2.5 6.4l2.4 2.4 4.6-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+          + 'Bid placed <b>' + amt + '</b>';
+      }
       clearTimeout(t._t);
-      t._t = setTimeout(function () { t.classList.remove("show"); }, 2200);
+      t._t = setTimeout(function () { t.classList.remove("show"); }, kind === "outbid" ? 2800 : 2200);
     }
     // Ticket L3-14468: while the lot is open the CTA is always "Slide to bid" (never a
     // bid status, never disabled). Winning/Outbid live in the bid stream (+ toast).
@@ -1755,6 +1765,13 @@
           syncPanel();
         }
         else if (a === "nextLot") advanceLot();
+        else if (a === "outbidMe") {
+          // Simulate a competing bid overtaking your leading bid → "another bid was placed, bid again"
+          if (saleState !== "live" || lotState === "sold") return;
+          const leadNow = bids.length && bids[bids.length - 1].src === "Mine";
+          if (!leadNow && userState === "registered") addBid("Mine");
+          setTimeout(() => addBid("In room"), leadNow ? 0 : 450);
+        }
         else if (a === "holding") setSaleState("holding");
         else if (a === "goLive") setSaleState("live");
         else if (a === "reset") {
