@@ -333,7 +333,7 @@
     .phone.card-fullbleed .lot-surface, .phone.card-stacked .lot-surface { padding: 0; }
     .phone.card-fullbleed .bid-card, .phone.card-stacked .bid-card {
       border-radius: 0;
-      box-shadow: 0 -10px 30px rgba(0,0,0,0.16);
+      box-shadow: none;
       padding: 20px 16px 30px;
     }
     .phone.card-fullbleed .bid-history, .phone.card-stacked .bid-history { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
@@ -348,8 +348,14 @@
     .phone.card-stacked.sheet-open .lot-sheet { top: var(--safe-top); }
     .phone.card-stacked.sheet-open .sheet-scrim { opacity: 0; visibility: hidden; pointer-events: none; }
     .phone.card-stacked.sheet-open .lot-handle,
-    .phone.card-stacked.sheet-open .bid-history,
     .phone.card-stacked.sheet-open .stream-toggle { opacity: 0; pointer-events: none; }
+    /* Keep the live bid stream over the video while the card is open (split view):
+       re-anchor it just above the raised sheet's top edge (--safe-top = 49%). */
+    .phone.card-stacked.sheet-open .bid-history {
+      opacity: 1; pointer-events: auto;
+      position: absolute; left: 16px; right: 16px; width: auto; margin: 0;
+      bottom: calc(var(--frame-h) * 0.51 + 12px); max-height: 120px;
+    }
     /* 9:16 split open card: lot info + a 1:1 image (never cropped), sized to fit
        without scrolling. Lot details are hidden in this compact view. */
     .phone.card-stacked.sheet-open .sheet-lot { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 10px; }
@@ -552,7 +558,7 @@
       display: flex; flex-direction: column;
       transform: translateY(100%); visibility: hidden;
       transition: transform 460ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 460ms;
-      box-shadow: 0 -12px 40px rgba(0,0,0,0.25);
+      box-shadow: none;
     }
     .phone.sheet-open .lot-sheet {
       transform: none; visibility: visible;
