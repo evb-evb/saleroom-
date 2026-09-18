@@ -163,7 +163,7 @@
       position: relative;
     }
     .tab {
-      font-size: 16px; font-weight: 600; color: var(--white-75);
+      font-size: 17px; font-weight: 600; color: var(--white-75);
       display: inline-flex; align-items: center; gap: 8px;
       background: none; border: 0; cursor: pointer; padding: 0; font-family: inherit;
     }
@@ -261,10 +261,12 @@
     }
     .phone.is-expanded .bid-history { max-height: 152px; overflow-y: auto; }
     .bid-row {
-      display: flex; align-items: center; justify-content: space-between;
-      width: 100%; padding: 4px; color: #fff;
-      font-size: 16px; font-weight: 600; line-height: 20px;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+      width: auto; max-width: 100%; padding: 7px 15px; color: #fff;
+      font-size: 18px; font-weight: 600; line-height: 20px;
+      background: rgba(0,0,0,0.42); border-radius: 999px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
       animation: chipRise 320ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     /* Default layout shows the amount only — the source ("bid type") is hidden. */
@@ -277,10 +279,12 @@
     .bid-history::-webkit-scrollbar { width: 0; }
     /* No pill background per V1.1 (7580:62351) — icon + text on the scrim */
     .chip {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 0;
-      color: #fff; font-size: 16px; font-weight: 600; line-height: 20px;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 15px;
+      color: #fff; font-size: 18px; font-weight: 600; line-height: 20px;
+      background: rgba(0,0,0,0.42); border-radius: 999px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
       animation: chipRise 320ms cubic-bezier(0.22, 1, 0.36, 1);
       white-space: nowrap;
     }
@@ -368,11 +372,11 @@
       width: 34px; height: 34px; padding: 0; border: 0; background: none; color: #000; cursor: pointer;
     }
     .bid-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .current-label { font-size: 14px; color: var(--black-75); }
-    .current-ref { font-size: 14px; color: var(--black-75); margin-bottom: 10px; }
+    .current-label { font-size: 15px; color: var(--black-75); }
+    .current-ref { font-size: 15px; color: var(--black-75); margin-bottom: 10px; }
     .current-ref-amt { font-weight: 600; color: var(--text-default); }
     .current-amount {
-      font-family: "Distinct Display", serif; font-size: 24px; line-height: 28px;
+      font-family: "Distinct Display", serif; font-size: 26px; line-height: 30px;
       color: var(--text-default); margin-top: 6px; font-weight: 400;
       transition: transform 200ms ease;
     }
@@ -395,7 +399,7 @@
 
     .place-bid {
       margin-top: 14px; width: 100%; height: 48px; border-radius: 2px; border: 0;
-      background: var(--black); color: #fff; font-size: 16px; font-weight: 600; font-family: inherit;
+      background: var(--black); color: #fff; font-size: 17px; font-weight: 600; font-family: inherit;
       cursor: pointer; transition: opacity 200ms ease, transform 120ms ease;
     }
     .place-bid:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -426,23 +430,23 @@
     .bid-card .lot-details:first-child + .bid-top { margin-top: 14px; }
     .lot-thumb { width: auto; height: 48px; align-self: flex-start; aspect-ratio: 1 / 1; border-radius: 0; object-fit: contain; background: transparent; flex: none; }
     .lot-text { min-width: 0; flex: 1; }
-    .lot-meta { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+    .lot-meta { display: flex; align-items: center; gap: 6px; font-size: 15px; }
     .lot-no { font-weight: 600; color: #000; }
     .lot-reserve { color: var(--reserve-red); font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; }
     .lot-symbols { margin-left: 6px; font-weight: 500; color: #000; letter-spacing: 0.06em; }
     .lot-symbols:empty { display: none; }
-    .lot-maker { font-family: "Distinct Display", serif; font-size: 19px; line-height: 24px; font-weight: 600; letter-spacing: -0.01em; color: #000; margin-top: 4px;
+    .lot-maker { font-family: "Distinct Display", serif; font-size: 20px; line-height: 25px; font-weight: 600; letter-spacing: -0.01em; color: #000; margin-top: 4px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lot-title { font-family: "Distinct Display Italic", serif; font-style: italic; font-size: 16px; line-height: 20px; color: var(--text-muted); margin-top: 1px;
+    .lot-title { font-family: "Distinct Display Italic", serif; font-style: italic; font-size: 17px; line-height: 21px; color: var(--text-muted); margin-top: 1px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* Closed (bid) card shows the full cataloguing, like the open sheet */
     .bid-card .lot-maker, .bid-card .lot-title { white-space: normal; overflow: visible; text-overflow: clip; }
     /* Compact summary card: tighter type/height than the full lot view */
-    .bid-card .lot-meta { font-size: 12px; }
-    .bid-card .lot-maker { font-size: 16px; line-height: 19px; margin-top: 2px; }
-    .bid-card .lot-title { font-size: 13px; line-height: 16px; }
-    .bid-card .lot-estimate { font-size: 13px; line-height: 16px; margin-top: 3px; white-space: nowrap; }
-    .lot-estimate { font-size: 16px; line-height: 20px; color: #000; margin-top: 6px; }
+    .bid-card .lot-meta { font-size: 13px; }
+    .bid-card .lot-maker { font-size: 17px; line-height: 20px; margin-top: 2px; }
+    .bid-card .lot-title { font-size: 14px; line-height: 17px; }
+    .bid-card .lot-estimate { font-size: 14px; line-height: 17px; margin-top: 3px; white-space: nowrap; }
+    .lot-estimate { font-size: 17px; line-height: 21px; color: #000; margin-top: 6px; }
     .lot-estimate b { font-weight: 600; }
     .lot-chev { color: #999; flex: none; align-self: center; }
 
@@ -574,7 +578,7 @@
     .sheet-body { flex: 1; overflow-y: auto; padding: 24px 16px 12px; }
     .sheet-body::-webkit-scrollbar { width: 0; }
     .sheet-amount {
-      font-family: "Distinct Display", serif; font-size: 24px; line-height: 28px;
+      font-family: "Distinct Display", serif; font-size: 26px; line-height: 30px;
       color: #000; font-weight: 400;
     }
     /* Lot information sits above the hero image (DOM order: text, then image).
@@ -584,7 +588,7 @@
     /* Lot details always exposed (accordion removed) */
     .lot-detail-text { margin-top: 12px; }
     .lot-detail-head { font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: 0.02em; color: #000; margin-bottom: 4px; }
-    .lot-detail-text p { font-size: 12px; line-height: 16px; color: #000; font-weight: 400; margin-top: 2px; }
+    .lot-detail-text p { font-size: 13px; line-height: 17px; color: #000; font-weight: 400; margin-top: 2px; }
     /* Lot view: no keylines around Lot details */
     #lotFull .lot-detail-text { flex: none; margin-top: 16px; padding-top: 0; }
     /* Lot view bid stream — left + source, in the lot-details text colour */
@@ -639,7 +643,7 @@
     .sheet-cta { flex: none; padding: 14px 16px 30px; background: #fff; border-top: 1px solid #eceae7; }
     /* Lot view: drop the keyline above the bidding panel */
     #lotFull .sheet-cta { border-top: 0; box-shadow: 0 -8px 24px rgba(0,0,0,0.12); }
-    .sheet-cta .current-label { font-size: 14px; color: var(--black-75); }
+    .sheet-cta .current-label { font-size: 15px; color: var(--black-75); }
     .sheet-cta .sheet-amount { margin: 2px 0 0; }
     .sheet-cta-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
     .sheet-cta .place-bid { margin-top: 0; }
@@ -840,10 +844,10 @@
     .al-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 0; height: 44px; }
     .al-tab { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-size: 16px; font-weight: 600; color: #b3b1ad; }
     .al-tab.is-active { color: #000; }
-    .al-count { font-size: 18px; font-weight: 400; color: #000; margin: 16px 0 12px; }
+    .al-count { font-size: 19px; font-weight: 400; color: #000; margin: 16px 0 12px; }
     .al-filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
     .al-filters::-webkit-scrollbar { height: 0; }
-    .al-pill { flex: none; padding: 8px 16px; border-radius: 999px; border: 1px solid #d9d6d1; background: #fff; color: #000; font: inherit; font-size: 13px; font-weight: 400; cursor: pointer; white-space: nowrap; }
+    .al-pill { flex: none; padding: 8px 16px; border-radius: 999px; border: 1px solid #d9d6d1; background: #fff; color: #000; font: inherit; font-size: 14px; font-weight: 400; cursor: pointer; white-space: nowrap; }
     .al-pill.is-on { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
     .al-list { flex: 1; overflow-y: auto; margin-top: 4px; padding-bottom: 56px; }
     .al-list::-webkit-scrollbar { width: 0; }
@@ -856,10 +860,10 @@
     .al-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 2px; }
     .al-no { font-weight: 600; color: #000; }
     .al-sym { color: #000; letter-spacing: 0.06em; }
-    .al-reserve { color: #b00000; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; font-size: 11px; }
-    .al-maker { font-family: "Distinct Display", serif; font-size: 16px; color: #000; line-height: 20px; }
-    .al-title { font-family: "Distinct Display Italic", serif; font-style: italic; font-size: 14px; color: #545454; margin: 1px 0 6px; line-height: 18px; }
-    .al-status { font-size: 14px; color: #000; }
+    .al-reserve { color: #b00000; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; font-size: 12px; }
+    .al-maker { font-family: "Distinct Display", serif; font-size: 17px; color: #000; line-height: 21px; }
+    .al-title { font-family: "Distinct Display Italic", serif; font-style: italic; font-size: 15px; color: #545454; margin: 1px 0 6px; line-height: 19px; }
+    .al-status { font-size: 15px; color: #000; }
     .al-status b { font-weight: 600; }
     /* Tab-specific status lines (Bids / Results) */
     .al-bidstate { font-weight: 600; }
