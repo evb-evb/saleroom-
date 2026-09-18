@@ -369,6 +369,8 @@
     }
     .bid-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .current-label { font-size: 14px; color: var(--black-75); }
+    .current-ref { font-size: 14px; color: var(--black-75); margin-bottom: 10px; }
+    .current-ref-amt { font-weight: 600; color: var(--text-default); }
     .current-amount {
       font-family: "Distinct Display", serif; font-size: 24px; line-height: 28px;
       color: var(--text-default); margin-top: 6px; font-weight: 400;
@@ -971,12 +973,13 @@
 
         <div class="bid-top">
           <div>
+            <div class="current-ref" id="currentRef" style="display:none"></div>
             <div class="current-label" id="currentLabel">Opening bid</div>
             <div class="current-amount" id="currentAmount">$800,000</div>
           </div>
         </div>
 
-        <div class="place-bid slide-bid is-static" id="placeBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Place bid $800,000</span></div>
+        <div class="place-bid slide-bid is-static" id="placeBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Slide to bid</span></div>
       </div>
     </div>
 
@@ -1010,11 +1013,12 @@
       <div class="sheet-cta">
         <div class="sheet-cta-top">
           <div>
+            <div class="current-ref" id="sheetRef" style="display:none"></div>
             <div class="current-label" id="sheetLabel">Opening bid</div>
             <div class="sheet-amount" id="sheetAmount">$800,000</div>
           </div>
         </div>
-        <div class="place-bid slide-bid is-static" id="sheetPlaceBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Place bid $800,000</span></div>
+        <div class="place-bid slide-bid is-static" id="sheetPlaceBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Slide to bid</span></div>
       </div>
     </div>
 
@@ -1055,11 +1059,12 @@
       <div class="sheet-cta">
         <div class="sheet-cta-top">
           <div>
+            <div class="current-ref" id="lfRef" style="display:none"></div>
             <div class="current-label" id="lfLabel">Opening bid</div>
             <div class="sheet-amount" id="lfAmount">$800,000</div>
           </div>
         </div>
-        <div class="place-bid slide-bid is-static" id="lfPlaceBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Place bid $800,000</span></div>
+        <div class="place-bid slide-bid is-static" id="lfPlaceBid" role="button" tabindex="0" aria-label="Slide to bid"><div class="slide-fill"></div><div class="slide-knob"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 6l6 6-6 6M12 6l6 6-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="slide-label">Slide to bid</span></div>
       </div>
     </div>
 
@@ -1431,11 +1436,27 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncLotThumb);
 
     // The sheet's bid header and CTA mirror the live card exactly.
+    // Bid figures: current bid is a quiet reference line, Next bid is the hero
+    // (the amount the slide commits). Rendered across the card, sheet and lot-view.
     function mirrorSheet() {
-      document.getElementById("sheetLabel").textContent = currentLabel.textContent;
-      document.getElementById("sheetAmount").textContent = currentAmt.textContent;
-      document.getElementById("lfLabel").textContent = currentLabel.textContent;
-      document.getElementById("lfAmount").textContent = currentAmt.textContent;
+      const hasBids = bids.length > 0;
+      const leading = hasBids && bids[bids.length - 1].src === "Mine";
+      let refHtml = "", heroLabel = "", heroAmt = "";
+      if (saleState === "holding") { heroLabel = "Begins"; heroAmt = "5pm BST"; }
+      else if (lotState === "sold") { heroLabel = "Sold for"; heroAmt = fmt(current); }
+      else if (!hasBids) { heroLabel = "Opening bid"; heroAmt = fmt(OPENING); }
+      else {
+        refHtml = (leading ? "Your bid" : "Current bid") + ' <span class="current-ref-amt">' + fmt(current) + "</span>";
+        heroLabel = "Next bid"; heroAmt = fmt(nextBid());
+      }
+      [["currentRef", "currentLabel", "currentAmount"],
+       ["sheetRef", "sheetLabel", "sheetAmount"],
+       ["lfRef", "lfLabel", "lfAmount"]].forEach(function (ids) {
+        const ref = document.getElementById(ids[0]);
+        if (ref) { ref.innerHTML = refHtml; ref.style.display = refHtml ? "" : "none"; }
+        const lab = document.getElementById(ids[1]); if (lab) lab.textContent = heroLabel;
+        const amt = document.getElementById(ids[2]); if (amt) amt.textContent = heroAmt;
+      });
     }
 
     function setSaleState(state) {
@@ -1531,7 +1552,7 @@
       current = nextBid();
       bids.push({ src, amt: current });
       fairWarning = false; // a new bid lifts the warning
-      // Outbid notice shows for 1s, then the CTA returns to "Place bid <next>" (Figma 7746:42536)
+      // Outbid notice held 1s (legacy); the CTA now stays "Slide to bid" throughout (L3-14468)
       if (src === "Mine") {
         outbid = false;
         clearTimeout(outbidTimer);
@@ -1683,7 +1704,7 @@
         mirrorSheet(); return;
       }
       phone.classList.remove("not-registered");
-      paintCta("", "Slide to bid " + fmt(nextBid()), true);
+      paintCta("", "Slide to bid", true);
       mirrorSheet();
     }
 
